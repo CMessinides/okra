@@ -1,0 +1,10 @@
+{
+  "name": "@cmessinides/caml",
+  "version": "0.0.1",
+  "description": "CAML Ain't A Markup Language",
+  "type": "module",
+  "main": "index.js",
+  "author": "Cameron Messinides <me@cmessinides.com>",
+  "license": "MIT",
+  "private": true
+}

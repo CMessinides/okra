@@ -1,0 +1,5 @@
+hello: world
+multiline::
+	Multiline strings can extend
+	across a block of multiple 
+	lines.

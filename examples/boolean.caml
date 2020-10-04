@@ -1,0 +1,12 @@
+true_values/
+	? true
+	# Case insensitive
+	? True
+	? TRUE
+	? yes
+	? y
+false_values/
+	? false
+	? FALSE
+	? no
+	? n

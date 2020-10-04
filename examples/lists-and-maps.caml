@@ -1,0 +1,10 @@
+map/
+	a: b
+	c? true
+list/
+	: a
+	= 2
+	? false
+mixed/
+	: list item
+	key: map item

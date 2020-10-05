@@ -6,6 +6,7 @@ const TAB = "\t".charCodeAt(0);
 const SPACE = " ".charCodeAt(0);
 const COLON = ":".charCodeAt(0);
 const SLASH = "/".charCodeAt(0);
+const EQUALS = "=".charCodeAt(0);
 
 const SCANNER_TABLE = new Map([
 	[
@@ -20,6 +21,7 @@ const SCANNER_TABLE = new Map([
 	],
 	[COLON, singleCharScanner(TokenType.COLON)],
 	[SLASH, singleCharScanner(TokenType.SLASH)],
+	[EQUALS, singleCharScanner(TokenType.EQUALS)],
 ]);
 
 const indent: Scanner = (source, tokens) => {

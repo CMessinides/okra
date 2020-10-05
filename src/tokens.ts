@@ -4,7 +4,7 @@ export enum TokenType {
 	// Single characters
 	COLON = "COLON",
 	SLASH = "SLASH",
-	EQUAL = "EQUAL",
+	EQUALS = "EQUALS",
 	QUESTION = "QUESTION",
 	// Two characters
 	DOUBLE_COLON = "DOUBLE_COLON",

@@ -1,7 +1,7 @@
 [
   {
     "type": "TEXT",
-    "lexeme": "hello",
+    "lexeme": "key with\ttab",
     "loc": {
       "offset": 0,
       "line": 1,
@@ -12,36 +12,27 @@
     "type": "COLON",
     "lexeme": ":",
     "loc": {
-      "offset": 5,
+      "offset": 12,
       "line": 1,
-      "col": 6
+      "col": 14
     }
   },
   {
     "type": "TEXT",
-    "lexeme": "world",
+    "lexeme": "value with\ttab",
     "loc": {
-      "offset": 7,
+      "offset": 14,
       "line": 1,
-      "col": 8
-    }
-  },
-  {
-    "type": "NEWLINE",
-    "lexeme": "\n",
-    "loc": {
-      "offset": 12,
-      "line": 1,
-      "col": 13
+      "col": 16
     }
   },
   {
     "type": "EOF",
     "lexeme": "<EOF>",
     "loc": {
-      "offset": 13,
-      "line": 2,
-      "col": 1
+      "offset": 28,
+      "line": 1,
+      "col": 31
     }
   }
 ]

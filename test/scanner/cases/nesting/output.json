@@ -1,0 +1,74 @@
+[
+  {
+    "type": "TEXT",
+    "lexeme": "list",
+    "loc": {
+      "offset": 0,
+      "line": 1,
+      "col": 1
+    }
+  },
+  {
+    "type": "SLASH",
+    "lexeme": "/",
+    "loc": {
+      "offset": 4,
+      "line": 1,
+      "col": 5
+    }
+  },
+  {
+    "type": "NEWLINE",
+    "lexeme": "\n",
+    "loc": {
+      "offset": 5,
+      "line": 1,
+      "col": 6
+    }
+  },
+  {
+    "type": "INDENT",
+    "lexeme": "\t",
+    "loc": {
+      "offset": 6,
+      "line": 2,
+      "col": 1
+    }
+  },
+  {
+    "type": "TEXT",
+    "lexeme": "foo",
+    "loc": {
+      "offset": 7,
+      "line": 2,
+      "col": 3
+    }
+  },
+  {
+    "type": "COLON",
+    "lexeme": ":",
+    "loc": {
+      "offset": 10,
+      "line": 2,
+      "col": 6
+    }
+  },
+  {
+    "type": "TEXT",
+    "lexeme": "bar",
+    "loc": {
+      "offset": 12,
+      "line": 2,
+      "col": 8
+    }
+  },
+  {
+    "type": "EOF",
+    "lexeme": "<EOF>",
+    "loc": {
+      "offset": 15,
+      "line": 2,
+      "col": 11
+    }
+  }
+]

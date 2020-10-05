@@ -1,87 +1,90 @@
-import { SourceLocation } from "./source";
+import { Source, SourceLocation } from "./source";
 import { Token, TokenType } from "./tokens";
 
-class ScanError extends Error {}
-
 const NEWLINE = "\n".charCodeAt(0);
+const TAB = "\t".charCodeAt(0);
+const SPACE = " ".charCodeAt(0);
 const COLON = ":".charCodeAt(0);
+const SLASH = "/".charCodeAt(0);
 
 const SCANNER_TABLE = new Map([
 	[
 		NEWLINE,
-		singleCharScanner(TokenType.NEWLINE, (state) => {
-			state.loc = { ...state.loc, line: state.loc.line + 1 };
-			return state;
+		singleCharScanner(TokenType.NEWLINE, (lookahead) => {
+			if (lookahead === TAB) {
+				return indent;
+			}
+
+			return getNextScanner(lookahead);
 		}),
 	],
 	[COLON, singleCharScanner(TokenType.COLON)],
+	[SLASH, singleCharScanner(TokenType.SLASH)],
 ]);
 
-const text: Scanner = (source, state) => {
-	let start = state.loc.offset;
+const indent: Scanner = (source, tokens) => {
+	let token: Token = {
+		type: TokenType.INDENT,
+		lexeme: "",
+		loc: source.loc(),
+	};
 
-	// Skip leading spaces
-	while (start < source.length && source.charAt(start) === " ") {
-		start++;
+	while (!source.isAtEnd() && source.peek() === TAB) {
+		token.lexeme += String.fromCharCode(source.advance());
 	}
 
-	let current = start;
-	let lexeme = "";
-	let next: Scanner | undefined;
+	tokens.push(token);
 
-	while (current < source.length) {
-		let nextScanner = getNextScanner(source.charCodeAt(current));
+	if (source.isAtEnd()) {
+		return null;
+	}
+
+	return getNextScanner(source.peek());
+};
+
+const text: Scanner = (source, tokens) => {
+	// Skip leading spaces
+	while (!source.isAtEnd() && source.peek() === SPACE) {
+		source.advance();
+	}
+
+	let token: Token = {
+		type: TokenType.TEXT,
+		lexeme: "",
+		loc: source.loc(),
+	};
+	let next: Scanner | null = null;
+
+	while (!source.isAtEnd()) {
+		token.lexeme += String.fromCharCode(source.advance());
+
+		let nextScanner = getNextScanner(source.peek());
 		if (nextScanner !== text) {
 			next = nextScanner;
 			break;
 		}
-
-		lexeme += source.charAt(current);
-		current++;
 	}
 
-	return {
-		loc: {
-			...state.loc,
-			offset: current,
-		},
-		next,
-		tokens: state.tokens.concat({
-			type: TokenType.TEXT,
-			lexeme,
-			loc: {
-				...state.loc,
-				offset: start,
-			},
-		}),
-		errors: state.errors,
-	};
+	tokens.push(token);
+	return next;
 };
 
-export function scan(source: string): ScanResult {
-	let state: ScanState = {
-		loc: { offset: 0, line: 1 },
-		next: text,
-		tokens: [],
-		errors: [],
-	};
+export function scan(input: string | Source): Token[] {
+	let source = typeof input === "string" ? Source.from(input) : input;
+	let next: Scanner | null = text;
+	let tokens: Token[] = [];
 
-	while (state.next) {
-		state = state.next(source, state);
+	while (next) {
+		next = next(source, tokens);
 	}
 
-	let { tokens, errors } = state;
-	tokens = tokens.concat({
+	tokens.push({
 		type: TokenType.EOF,
 		lexeme: "<EOF>",
-		loc: state.loc,
+		loc: source.loc(),
 	});
 
-	return {
-		ok: errors.length === 0,
-		tokens,
-		errors,
-	};
+	return tokens;
 }
 
 function getNextScanner(charCode: number): Scanner {
@@ -92,53 +95,19 @@ function getNextScanner(charCode: number): Scanner {
 	}
 }
 
-function singleCharScanner(
-	type: TokenType,
-	changeState?: (state: ScanState) => ScanState
-): Scanner {
-	return (source, state) => {
-		let current = state.loc.offset;
+function singleCharScanner(type: TokenType, getNext = getNextScanner): Scanner {
+	return (source, tokens) => {
+		let loc = source.loc();
+		let lexeme = String.fromCharCode(source.advance());
 
-		let tokens = state.tokens.concat({
-			type,
-			lexeme: source.charAt(current++),
-			loc: state.loc,
-		});
+		tokens.push({ type, lexeme, loc });
 
-		let next: Scanner | undefined;
-		if (current < source.length) {
-			next = getNextScanner(source.charCodeAt(current));
+		if (source.isAtEnd()) {
+			return null;
 		}
 
-		let nextState: ScanState = {
-			loc: {
-				...state.loc,
-				offset: current,
-			},
-			next,
-			tokens,
-			errors: state.errors,
-		};
-
-		if (typeof changeState === "function") {
-			nextState = changeState(nextState);
-		}
-
-		return nextState;
+		return getNext(source.peek());
 	};
 }
 
-interface ScanResult {
-	ok: boolean;
-	tokens: readonly Token[];
-	errors: readonly ScanError[];
-}
-
-interface ScanState {
-	loc: Readonly<SourceLocation>;
-	next?: Scanner;
-	tokens: readonly Token[];
-	errors: readonly ScanError[];
-}
-
-type Scanner = (source: string, state: Readonly<ScanState>) => ScanState;
+type Scanner = (source: Source, tokens: Token[]) => Scanner | null;

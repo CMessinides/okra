@@ -28,7 +28,7 @@
   },
   {
     "type": "EOF",
-    "lexeme": "<EOF>",
+    "lexeme": "",
     "loc": {
       "offset": 28,
       "line": 1,

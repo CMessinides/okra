@@ -80,7 +80,7 @@ export function scan(input: string | Source): Token[] {
 
 	tokens.push({
 		type: TokenType.EOF,
-		lexeme: "<EOF>",
+		lexeme: "",
 		loc: source.loc(),
 	});
 

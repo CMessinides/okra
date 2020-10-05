@@ -64,7 +64,7 @@
   },
   {
     "type": "EOF",
-    "lexeme": "<EOF>",
+    "lexeme": "",
     "loc": {
       "offset": 15,
       "line": 2,

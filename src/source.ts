@@ -6,6 +6,7 @@ export interface SourceLocation {
 
 const NEWLINE = "\n".charCodeAt(0);
 const TAB = "\t".charCodeAt(0);
+const SPACE = " ".charCodeAt(0);
 const TAB_WIDTH = 2;
 
 export class Source {
@@ -55,10 +56,35 @@ export class Source {
 		return charCodes;
 	}
 
+	advanceWhileChar(condition: (charCode: number) => boolean): number[] {
+		let charCodes = [];
+
+		while (!this.isAtEnd() && condition(this.peek())) {
+			charCodes.push(this.advance());
+		}
+
+		return charCodes;
+	}
+
+	advanceIfRegExp(pattern: RegExp): string {
+		let str = this.data.substr(this.offset);
+		let match = str.match(pattern);
+		if (match) {
+			this.advanceChars(match.index! + match[0].length);
+			return match[0];
+		} else {
+			return "";
+		}
+	}
+
 	peek(): number {
 		if (this.isAtEnd()) return 0;
 
 		return this.data.charCodeAt(this.offset);
+	}
+
+	skipSpaces(): number[] {
+		return this.advanceWhileChar((charCode) => charCode === SPACE);
 	}
 
 	isAtEnd(): boolean {

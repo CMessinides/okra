@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "root": {
+    "type": "list",
+    "items": [
+      {
+        "type": "item",
+        "key": {
+          "type": "key",
+          "literal": "hello",
+          "value": "hello"
+        },
+        "value": {
+          "type": "string",
+          "literal": "world",
+          "value": "world"
+        }
+      }
+    ]
+  },
+  "errors": []
+}

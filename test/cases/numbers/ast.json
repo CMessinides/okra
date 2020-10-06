@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "root": {
+    "type": "list",
+    "items": [
+      {
+        "type": "item",
+        "key": {
+          "type": "key",
+          "literal": "int",
+          "value": "int"
+        },
+        "value": {
+          "type": "number",
+          "format": "int",
+          "literal": "2",
+          "value": 2
+        }
+      },
+      {
+        "type": "item",
+        "key": {
+          "type": "key",
+          "literal": "float",
+          "value": "float"
+        },
+        "value": {
+          "type": "number",
+          "format": "float",
+          "literal": "2.1",
+          "value": 2.1
+        }
+      },
+      {
+        "type": "item",
+        "key": {
+          "type": "key",
+          "literal": "sci",
+          "value": "sci"
+        },
+        "value": {
+          "type": "number",
+          "format": "float",
+          "literal": "2.1e-10",
+          "value": 2.1e-10
+        }
+      }
+    ]
+  },
+  "errors": []
+}

@@ -83,6 +83,16 @@ export class Source {
 		return this.data.charCodeAt(this.offset);
 	}
 
+	match(charCode: number): boolean {
+		if (this.isAtEnd()) return false;
+		if (this.data.charCodeAt(this.offset) !== charCode) {
+			return false;
+		}
+
+		this.advance();
+		return true;
+	}
+
 	skipSpaces(): number[] {
 		return this.advanceWhileChar((charCode) => charCode === SPACE);
 	}

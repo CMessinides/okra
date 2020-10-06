@@ -2,8 +2,13 @@ import { Source, SourceLocation } from "./source";
 
 const TAB = "\t".charCodeAt(0);
 const NEWLINE = "\n".charCodeAt(0);
+const DOT = ".".charCodeAt(0);
+const LOWER_E = "e".charCodeAt(0);
 
-const PARSER_TABLE = new Map<string, ValueParser>([[":", parseString]]);
+const PARSER_TABLE = new Map<string, ValueParser>([
+	[":", parseString],
+	["=", parseNumber],
+]);
 
 function getValueParser(delimiter: string) {
 	return PARSER_TABLE.get(delimiter) ?? null;
@@ -17,6 +22,13 @@ class ParseError extends Error {
 		super(message);
 		this.loc = loc;
 		this.source = source;
+	}
+
+	toJSON() {
+		return {
+			loc: this.loc,
+			message: this.message,
+		};
 	}
 }
 
@@ -79,7 +91,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 	source.skipSpaces();
 
 	let key = parseKey(source);
-	let parseValue = getValueParser(source.advanceIfRegExp(/^[:]/));
+	let parseValue = getValueParser(source.advanceIfRegExp(/^[:=]/));
 
 	if (!parseValue) {
 		if (source.isAtEnd()) {
@@ -90,7 +102,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 		throw error(
 			`${JSON.stringify(
 				nextChar
-			)} is not a valid delimiter; expected ":" for a string value.`
+			)} is not a valid delimiter; expected one of: ":", "=".`
 		);
 	}
 
@@ -109,7 +121,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 }
 
 function parseKey(source: Source): CamlKey | null {
-	let literal = source.advanceIfRegExp(/^(?:\\.|[^:])+/).trimEnd();
+	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=])+/).trimEnd();
 
 	if (!literal) {
 		return null;
@@ -134,6 +146,55 @@ function parseString(source: Source): CamlString {
 	};
 }
 
+function parseNumber(source: Source, error: ErrorFn): CamlNumber {
+	source.skipSpaces();
+
+	let format = NumberFormat.INT;
+	let intLiteral = source.advanceIfRegExp(/^\d+/);
+
+	if (!intLiteral) {
+		throw error("Numbers must start with a digit.");
+	}
+
+	if (!source.match(DOT)) {
+		// Number is an integer
+		return {
+			type: CamlType.NUMBER,
+			format,
+			literal: intLiteral,
+			value: parseInt(intLiteral),
+		};
+	}
+
+	format = NumberFormat.FLOAT;
+
+	let floatLiteral = source.advanceIfRegExp(/^\d+/);
+	if (!floatLiteral) {
+		throw error("Decimal point must be followed by a digit.");
+	}
+
+	let literal = intLiteral + "." + floatLiteral;
+
+	if (source.match(LOWER_E)) {
+		let exponent = source.advanceIfRegExp(/^-?\d+/);
+
+		if (!exponent) {
+			throw error(
+				'Exponent notation ("e") must be followed by a positive or negative number.'
+			);
+		}
+
+		literal += "e" + exponent;
+	}
+
+	return {
+		type: CamlType.NUMBER,
+		format,
+		literal,
+		value: parseFloat(literal),
+	};
+}
+
 function synchronize(source: Source) {
 	source.advanceWhileChar((charCode) => charCode !== NEWLINE);
 }
@@ -149,6 +210,7 @@ enum CamlType {
 	ITEM = "item",
 	KEY = "key",
 	STRING = "string",
+	NUMBER = "number",
 }
 
 interface CamlList {
@@ -168,12 +230,24 @@ interface CamlKey {
 	value: string;
 }
 
-type CamlValue = CamlString | CamlList;
+type CamlValue = CamlString | CamlNumber | CamlList;
 
 interface CamlString {
 	type: CamlType.STRING;
 	literal: string;
 	value: string;
+}
+
+enum NumberFormat {
+	INT = "int",
+	FLOAT = "float",
+}
+
+interface CamlNumber {
+	type: CamlType.NUMBER;
+	format: NumberFormat;
+	literal: string;
+	value: number;
 }
 
 type ValueParser = (source: Source, error: ErrorFn, depth: number) => CamlValue;

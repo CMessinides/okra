@@ -1,6 +1,6 @@
-[test/*/cases/*/output.json]
+[test/cases/*/output.json]
 indent_style = space
 indent_size = 2
 
-[test/*/cases/*/*]
+[test/cases/*/*]
 insert_final_newline = false

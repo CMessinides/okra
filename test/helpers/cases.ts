@@ -27,7 +27,7 @@ class TestCase {
 			name = rest.join(".");
 		}
 
-		name = sentenceCase(name).replace(/eof/i, "EOF");
+		name = sentenceCase(name);
 
 		return new TestCase(name, dir, flag);
 	}
@@ -48,9 +48,9 @@ class TestCase {
 		}
 	}
 
-	load(): Promise<[string, string]> {
-		const inputFile = path.join(this.dir, "input.caml");
-		const outputFile = path.join(this.dir, "output.json");
+	load(input: string, output: string): Promise<[string, string]> {
+		const inputFile = path.join(this.dir, input);
+		const outputFile = path.join(this.dir, output);
 
 		return Promise.all(
 			[inputFile, outputFile].map((file) => fs.promises.readFile(file, "utf-8"))
@@ -66,10 +66,12 @@ class TestCase {
 
 class MissingCaseFileError extends Error {
 	constructor(filePath: string) {
+		let name = path.basename(filePath);
 		super(
-			`Test case is missing an ${
-				filePath.endsWith("input.caml") ? "input CAML file" : "output JSON file"
-			}. Be sure that ${path.relative(process.cwd(), filePath)} exists.`
+			`Test case is missing file: ${name}. Be sure that ${path.relative(
+				process.cwd(),
+				filePath
+			)} exists.`
 		);
 	}
 }

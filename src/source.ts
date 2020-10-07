@@ -66,6 +66,12 @@ export class Source {
 		return charCodes;
 	}
 
+	advanceUntilNewline(): string {
+		return String.fromCharCode(
+			...this.advanceWhileChar((charCode) => charCode !== NEWLINE)
+		);
+	}
+
 	advanceIfRegExp(pattern: RegExp): string {
 		let str = this.data.substr(this.offset);
 		let match = str.match(pattern);

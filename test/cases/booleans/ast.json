@@ -1,0 +1,64 @@
+{
+  "type": "document",
+  "ok": true,
+  "root": {
+    "type": "list",
+    "items": [
+      {
+        "type": "item",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "literal": "true",
+          "value": true
+        }
+      },
+      {
+        "type": "item",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "literal": "false",
+          "value": false
+        }
+      },
+      {
+        "type": "item",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "literal": "yes",
+          "value": true
+        }
+      },
+      {
+        "type": "item",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "literal": "no",
+          "value": false
+        }
+      },
+      {
+        "type": "item",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "literal": "y",
+          "value": true
+        }
+      },
+      {
+        "type": "item",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "literal": "n",
+          "value": false
+        }
+      }
+    ]
+  },
+  "errors": []
+}

@@ -8,6 +8,7 @@ const PARSER_TABLE = new Map<string, ValueParser>([
 	[":", parseString],
 	["=", parseNumber],
 	["/", parseListValue],
+	["?", parseBoolean],
 ]);
 
 function getValueParser(delimiter: string) {
@@ -93,7 +94,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 	source.skipSpaces();
 
 	let key = parseKey(source);
-	let parseValue = getValueParser(source.advanceIfRegExp(/^[:=/]/));
+	let parseValue = getValueParser(source.advanceIfRegExp(/^[:=/?]/));
 
 	if (!parseValue) {
 		if (source.isAtEnd()) {
@@ -104,7 +105,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 		throw error(
 			`${JSON.stringify(
 				nextChar
-			)} is not a valid delimiter; expected one of: ":", "=", "/".`
+			)} is not a valid delimiter; expected one of: ":", "=", "/", "?".`
 		);
 	}
 
@@ -122,7 +123,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 }
 
 function parseKey(source: Source): CamlKey | null {
-	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=/])+/).trim();
+	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=/?])+/).trim();
 
 	if (!literal) {
 		return null;
@@ -136,9 +137,7 @@ function parseKey(source: Source): CamlKey | null {
 }
 
 function parseString(source: Source): CamlString {
-	let literal = String.fromCharCode(
-		...source.advanceWhileChar((charCode) => charCode !== NEWLINE)
-	).trim();
+	let literal = source.advanceUntilNewline().trim();
 
 	return {
 		type: CamlType.STRING,
@@ -208,6 +207,37 @@ function parseListValue(
 	return parseList(source, error, depth + 1);
 }
 
+const TRUE_LITERALS = new Set(["true", "yes", "y"]);
+const FALSE_LITERALS = new Set(["false", "no", "n"]);
+
+function parseBoolean(source: Source, error: ErrorFn): CamlBoolean {
+	let literal = source.advanceUntilNewline().trim();
+
+	let value: boolean;
+	if (TRUE_LITERALS.has(literal.toLowerCase())) {
+		value = true;
+	} else if (FALSE_LITERALS.has(literal.toLowerCase())) {
+		value = false;
+	} else {
+		throw error(
+			`${JSON.stringify(
+				literal
+			)} is not a valid boolean value; must be one of: ${[
+				...TRUE_LITERALS,
+				...FALSE_LITERALS,
+			]
+				.map((l) => `"${l}"`)
+				.join(", ")}.`
+		);
+	}
+
+	return {
+		type: CamlType.BOOLEAN,
+		literal,
+		value,
+	};
+}
+
 function synchronize(source: Source) {
 	source.advanceWhileChar((charCode) => charCode !== NEWLINE);
 }
@@ -219,6 +249,7 @@ enum CamlType {
 	KEY = "key",
 	STRING = "string",
 	NUMBER = "number",
+	BOOLEAN = "boolean",
 }
 
 interface CamlDocument {
@@ -245,7 +276,7 @@ interface CamlKey {
 	value: string;
 }
 
-type CamlValue = CamlString | CamlNumber | CamlList;
+type CamlValue = CamlString | CamlNumber | CamlList | CamlBoolean;
 
 interface CamlString {
 	type: CamlType.STRING;
@@ -263,6 +294,12 @@ interface CamlNumber {
 	format: NumberFormat;
 	literal: string;
 	value: number;
+}
+
+interface CamlBoolean {
+	type: CamlType.BOOLEAN;
+	literal: string;
+	value: boolean;
 }
 
 type ValueParser = (source: Source, error: ErrorFn, depth: number) => CamlValue;

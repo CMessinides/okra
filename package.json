@@ -8,8 +8,9 @@
 	"private": true,
 	"scripts": {
 		"build": "tsc",
+		"build:watch": "tsc -w",
 		"test": "uvu -r ts-node/register -i helpers test",
-		"dev": "watchlist src test -- yarn -s test",
+		"test:watch": "watchlist src test -- yarn -s test",
 		"coverage": "nyc yarn test"
 	},
 	"dependencies": {},

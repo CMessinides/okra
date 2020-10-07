@@ -1,0 +1,23 @@
+{
+  "type": "document",
+  "ok": true,
+  "root": {
+    "type": "list",
+    "items": [
+      {
+        "type": "item",
+        "key": {
+          "type": "key",
+          "literal": "key with\ttab",
+          "value": "key with\ttab"
+        },
+        "value": {
+          "type": "string",
+          "literal": "value with\ttab",
+          "value": "value with\ttab"
+        }
+      }
+    ]
+  },
+  "errors": []
+}

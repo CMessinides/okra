@@ -1,0 +1,6 @@
+# comment
+foo/
+	# comment
+			# comment
+	: bar
+	# comment

@@ -89,6 +89,12 @@ export class Source {
 		return this.data.charCodeAt(this.offset);
 	}
 
+	peekNth(n: number): number {
+		if (this.offset + n >= this.data.length) return 0;
+
+		return this.data.charCodeAt(this.offset + n);
+	}
+
 	peekDepth(): number {
 		let tabs: number[] = [];
 

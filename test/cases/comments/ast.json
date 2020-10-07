@@ -1,0 +1,32 @@
+{
+  "type": "document",
+  "ok": true,
+  "root": {
+    "type": "list",
+    "items": [
+      {
+        "type": "item",
+        "key": {
+          "type": "key",
+          "literal": "foo",
+          "value": "foo"
+        },
+        "value": {
+          "type": "list",
+          "items": [
+            {
+              "type": "item",
+              "key": null,
+              "value": {
+                "type": "string",
+                "literal": "bar",
+                "value": "bar"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "errors": []
+}

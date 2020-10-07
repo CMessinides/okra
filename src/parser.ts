@@ -49,12 +49,21 @@ export function parse(input: string): CamlDocument {
 	};
 }
 
+const HASH = "#".charCodeAt(0);
+
 function parseList(source: Source, error: ErrorFn, depth: number): CamlList {
 	let items: CamlItem[] = [];
 
 	while (!source.isAtEnd()) {
 		try {
 			let nextDepth = source.peekDepth();
+
+			if (source.peekNth(nextDepth) === HASH) {
+				// We've hit a comment - consume and continue
+				source.advanceUntilNewline();
+				source.skipNewlines();
+				continue;
+			}
 
 			if (nextDepth < depth) {
 				break;
@@ -107,6 +116,18 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 
 	let value = parseValue(source, error, depth);
 
+	// Consume newlines if necessary
+	if (
+		// Lists handle their own newlines...
+		value.type !== CamlType.LIST &&
+		// ...and we don't need a newline if there's no more input...
+		!source.isAtEnd() &&
+		// ...but otherwise we should consume at least one newline.
+		!source.skipNewlines().length
+	) {
+		throw error("Expected newline after value.");
+	}
+
 	return {
 		type: CamlType.ITEM,
 		key,
@@ -115,7 +136,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 }
 
 function parseKey(source: Source): CamlKey | null {
-	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=/?])+/).trim();
+	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=/?\n])+/).trim();
 
 	if (!literal) {
 		return null;
@@ -130,10 +151,6 @@ function parseKey(source: Source): CamlKey | null {
 
 function parseString(source: Source, error: ErrorFn): CamlString {
 	let literal = source.advanceUntilNewline().trim();
-
-	if (!source.isAtEnd() && !source.skipNewlines().length) {
-		throw error("Expected newline after value.");
-	}
 
 	return {
 		type: CamlType.STRING,
@@ -186,10 +203,6 @@ function parseNumber(source: Source, error: ErrorFn): CamlNumber {
 		literal += "e" + exponent;
 	}
 
-	if (!source.isAtEnd() && !source.skipNewlines().length) {
-		throw error("Expected newline after value.");
-	}
-
 	return {
 		type: CamlType.NUMBER,
 		format,
@@ -232,10 +245,6 @@ function parseBoolean(source: Source, error: ErrorFn): CamlBoolean {
 				.map((l) => `"${l}"`)
 				.join(", ")}.`
 		);
-	}
-
-	if (!source.isAtEnd() && !source.skipNewlines().length) {
-		throw error("Expected newline after value.");
 	}
 
 	return {

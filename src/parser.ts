@@ -1,6 +1,5 @@
 import { Source, SourceLocation } from "./source";
 
-const TAB = "\t".charCodeAt(0);
 const NEWLINE = "\n".charCodeAt(0);
 const DOT = ".".charCodeAt(0);
 const LOWER_E = "e".charCodeAt(0);
@@ -8,6 +7,7 @@ const LOWER_E = "e".charCodeAt(0);
 const PARSER_TABLE = new Map<string, ValueParser>([
 	[":", parseString],
 	["=", parseNumber],
+	["/", parseListValue],
 ]);
 
 function getValueParser(delimiter: string) {
@@ -32,7 +32,7 @@ class ParseError extends Error {
 	}
 }
 
-export function parse(input: string): ParseResult {
+export function parse(input: string): CamlDocument {
 	let source = Source.from(input);
 	let errors: ParseError[] = [];
 
@@ -45,6 +45,7 @@ export function parse(input: string): ParseResult {
 	let root = parseList(source, error, 0);
 
 	return {
+		type: CamlType.DOCUMENT,
 		ok: errors.length === 0,
 		root,
 		errors,
@@ -56,20 +57,21 @@ function parseList(source: Source, error: ErrorFn, depth: number): CamlList {
 
 	while (!source.isAtEnd()) {
 		try {
-			let indent = source.advanceWhileChar((charCode) => charCode === TAB);
+			let nextDepth = source.peekDepth();
 
-			if (indent.length < depth) {
+			if (nextDepth < depth) {
 				break;
 			}
 
-			if (indent.length > depth) {
+			if (nextDepth > depth) {
 				throw error(
 					`Indentation error: expected ${depth} ${
 						depth === 1 ? "tab" : "tabs"
-					}, but got ${indent.length}.`
+					}, but got ${nextDepth}.`
 				);
 			}
 
+			source.advanceChars(depth);
 			items.push(parseItem(source, error, depth));
 		} catch (e) {
 			if (e instanceof ParseError) {
@@ -91,7 +93,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 	source.skipSpaces();
 
 	let key = parseKey(source);
-	let parseValue = getValueParser(source.advanceIfRegExp(/^[:=]/));
+	let parseValue = getValueParser(source.advanceIfRegExp(/^[:=/]/));
 
 	if (!parseValue) {
 		if (source.isAtEnd()) {
@@ -102,14 +104,13 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 		throw error(
 			`${JSON.stringify(
 				nextChar
-			)} is not a valid delimiter; expected one of: ":", "=".`
+			)} is not a valid delimiter; expected one of: ":", "=", "/".`
 		);
 	}
 
 	let value = parseValue(source, error, depth);
 
-	let newlines = source.advanceWhileChar((charCode) => charCode === NEWLINE);
-	if (!source.isAtEnd() && newlines.length === 0) {
+	if (!source.isAtEnd() && !source.skipNewlines().length) {
 		throw error("Expected newline after value.");
 	}
 
@@ -121,7 +122,7 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 }
 
 function parseKey(source: Source): CamlKey | null {
-	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=])+/).trimEnd();
+	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=/])+/).trim();
 
 	if (!literal) {
 		return null;
@@ -195,22 +196,36 @@ function parseNumber(source: Source, error: ErrorFn): CamlNumber {
 	};
 }
 
+function parseListValue(
+	source: Source,
+	error: ErrorFn,
+	depth: number
+): CamlList {
+	if (!source.isAtEnd() && !source.skipNewlines().length) {
+		throw error("Expected newline before list items.");
+	}
+
+	return parseList(source, error, depth + 1);
+}
+
 function synchronize(source: Source) {
 	source.advanceWhileChar((charCode) => charCode !== NEWLINE);
 }
 
-interface ParseResult {
-	ok: boolean;
-	root: CamlList;
-	errors: ParseError[];
-}
-
 enum CamlType {
+	DOCUMENT = "document",
 	LIST = "list",
 	ITEM = "item",
 	KEY = "key",
 	STRING = "string",
 	NUMBER = "number",
+}
+
+interface CamlDocument {
+	type: CamlType.DOCUMENT;
+	ok: boolean;
+	root: CamlList;
+	errors: ParseError[];
 }
 
 interface CamlList {

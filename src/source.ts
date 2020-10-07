@@ -83,6 +83,24 @@ export class Source {
 		return this.data.charCodeAt(this.offset);
 	}
 
+	peekDepth(): number {
+		let tabs: number[] = [];
+
+		let i = this.offset;
+		while (!this.isAtEnd()) {
+			let charCode = this.data.charCodeAt(i);
+
+			if (charCode !== TAB) {
+				break;
+			}
+
+			tabs.push(charCode);
+			i++;
+		}
+
+		return tabs.length;
+	}
+
 	match(charCode: number): boolean {
 		if (this.isAtEnd()) return false;
 		if (this.data.charCodeAt(this.offset) !== charCode) {
@@ -95,6 +113,10 @@ export class Source {
 
 	skipSpaces(): number[] {
 		return this.advanceWhileChar((charCode) => charCode === SPACE);
+	}
+
+	skipNewlines(): number[] {
+		return this.advanceWhileChar((charCode) => charCode === NEWLINE);
 	}
 
 	isAtEnd(): boolean {

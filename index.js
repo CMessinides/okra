@@ -1,5 +1,6 @@
 const { readFileSync } = require("fs");
 const { scan } = require("./dist/scanner");
+const { parse } = require("./dist/parser");
 
 if (process.argv[2] === undefined) {
 	console.error("ERROR: No input file provided.");
@@ -16,6 +17,6 @@ if (process.argv[2] === undefined) {
 		process.exit(1);
 	}
 
-	let tokens = scan(data);
-	console.log(JSON.stringify(tokens, null, 2));
+	let document = parse(data);
+	console.log(JSON.stringify(document, null, 2));
 }

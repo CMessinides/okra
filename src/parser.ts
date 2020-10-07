@@ -1,9 +1,5 @@
 import { Source, SourceLocation } from "./source";
 
-const NEWLINE = "\n".charCodeAt(0);
-const DOT = ".".charCodeAt(0);
-const LOWER_E = "e".charCodeAt(0);
-
 const PARSER_TABLE = new Map<string, ValueParser>([
 	[":", parseString],
 	["=", parseNumber],
@@ -111,10 +107,6 @@ function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
 
 	let value = parseValue(source, error, depth);
 
-	if (!source.isAtEnd() && !source.skipNewlines().length) {
-		throw error("Expected newline after value.");
-	}
-
 	return {
 		type: CamlType.ITEM,
 		key,
@@ -136,8 +128,12 @@ function parseKey(source: Source): CamlKey | null {
 	};
 }
 
-function parseString(source: Source): CamlString {
+function parseString(source: Source, error: ErrorFn): CamlString {
 	let literal = source.advanceUntilNewline().trim();
+
+	if (!source.isAtEnd() && !source.skipNewlines().length) {
+		throw error("Expected newline after value.");
+	}
 
 	return {
 		type: CamlType.STRING,
@@ -145,6 +141,9 @@ function parseString(source: Source): CamlString {
 		value: literal,
 	};
 }
+
+const DOT = ".".charCodeAt(0);
+const LOWER_E = "e".charCodeAt(0);
 
 function parseNumber(source: Source, error: ErrorFn): CamlNumber {
 	source.skipSpaces();
@@ -185,6 +184,10 @@ function parseNumber(source: Source, error: ErrorFn): CamlNumber {
 		}
 
 		literal += "e" + exponent;
+	}
+
+	if (!source.isAtEnd() && !source.skipNewlines().length) {
+		throw error("Expected newline after value.");
 	}
 
 	return {
@@ -231,6 +234,10 @@ function parseBoolean(source: Source, error: ErrorFn): CamlBoolean {
 		);
 	}
 
+	if (!source.isAtEnd() && !source.skipNewlines().length) {
+		throw error("Expected newline after value.");
+	}
+
 	return {
 		type: CamlType.BOOLEAN,
 		literal,
@@ -239,7 +246,8 @@ function parseBoolean(source: Source, error: ErrorFn): CamlBoolean {
 }
 
 function synchronize(source: Source) {
-	source.advanceWhileChar((charCode) => charCode !== NEWLINE);
+	source.advanceUntilNewline();
+	source.skipNewlines();
 }
 
 enum CamlType {

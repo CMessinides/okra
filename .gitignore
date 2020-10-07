@@ -1,4 +1,18 @@
-*.log
+# Editor settings
 .vscode
+
+# Dependencies
 node_modules
-dist
+
+# Build output
+/dist
+
+# Coverage output
+/.nyc_output
+/coverage
+
+# Log files
+*.log
+
+# Misc
+.DS_Store

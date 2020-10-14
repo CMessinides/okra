@@ -175,7 +175,7 @@ class Scanner {
 export function scan(source: string): Token[] {
 	let scanner = new Scanner(source);
 
-	let state: ScanState = scanIndent;
+	let state: ScanState | null = scanIndent;
 	while (state !== null) {
 		state = state(scanner);
 	}
@@ -214,25 +214,8 @@ const scanNewline: ScanState = (scanner) => {
 	return scanIndent;
 };
 
-const scanValueText = scanText()!;
-const scanMultilineText: ScanState = (scanner) => {
-	let startDepth = scanner.depth;
-
-	let next = scanIndent(scanner);
-
-	while (next && scanner.depth > startDepth) {
-		let { line } = scanner.loc();
-		let nextInLine: ScanState = scanValueText;
-
-		while (nextInLine && scanner.loc().line === line) {
-			nextInLine = nextInLine(scanner);
-		}
-
-		next = scanIndent(scanner);
-	}
-
-	return next;
-};
+const scanValueText = scanText();
+const scanMultilineText = scanBlock(scanValueText);
 const scanDoubleColon: ScanState = (scanner) => {
 	scanner.advance();
 	scanner.emit(TokenType.DOUBLE_COLON);
@@ -277,7 +260,7 @@ const scanKeyText = scanText(
 
 function scanText(branches: Map<CharCode, ScanState> = new Map()): ScanState {
 	return function (scanner) {
-		let next: ScanState = null;
+		let next: ScanState | null = null;
 
 		while (!scanner.isAtEnd()) {
 			let c = scanner.peek();
@@ -303,6 +286,63 @@ function scanText(branches: Map<CharCode, ScanState> = new Map()): ScanState {
 	};
 }
 
+/**
+ * Create a scan state that consumes a block of lines that are all indented to the same
+ * depth.
+ * @param scanAfterIndent The state to enter after each indent in the block has been consumed.
+ */
+function scanBlock(scanAfterIndent: ScanState): ScanState {
+	return function (scanner) {
+		let targetDepth = scanner.depth + 1;
+
+		// Save a reference to the state we should enter after we exit this block
+		let scanAfterBlock = scanIndent(scanner);
+
+		/*
+			A block ends either when:
+			
+			1) we reach the end of the file (i.e. scanAfterBlock is null); or
+			2) the depth of the current line is less than the target depth
+		 */
+		while (scanAfterBlock && scanner.depth >= targetDepth) {
+			if (scanner.depth > targetDepth) {
+				// We can guarantee the last token was an indent
+				let indent = scanner.tokens[scanner.tokens.length - 1];
+				let actualDepth = indent.value.length;
+
+				// We emit an error, but in the spirit of forgiveness, we proceed as normal.
+				// The worst case is a completely misinterpreted line -- but once we move to the
+				// next line or exit the block, we reset the state and try again.
+				scanner.error(
+					`Invalid indentation: expected ${targetDepth} ${
+						targetDepth === 1 ? "tab" : "tabs"
+					}, got ${actualDepth}`,
+					// Use the location of the offending indentation
+					indent.loc
+				);
+			}
+
+			let { line } = scanner.loc();
+			let scanWithinLine: ScanState | null = scanAfterIndent;
+
+			/*
+				A line ends either when:
+				
+				1) we reach the end of the file (i.e. scanWithinLine is null); or
+				2) the scanner moves to a new line.
+			 */
+			while (scanWithinLine && scanner.loc().line === line) {
+				scanWithinLine = scanWithinLine(scanner);
+			}
+
+			// Having consumed the line, update the exit state
+			scanAfterBlock = scanIndent(scanner);
+		}
+
+		return scanAfterBlock;
+	};
+}
+
 function scanDelimiter(
 	delimiter: string,
 	type: TokenType,
@@ -320,4 +360,4 @@ function scanDelimiter(
 	};
 }
 
-type ScanState = ((scanner: Scanner) => ScanState) | null;
+type ScanState = (scanner: Scanner) => ScanState | null;

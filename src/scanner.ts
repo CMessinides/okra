@@ -6,6 +6,7 @@ const COLON = 0x3a;
 const EQUALS = 0x3d;
 const QUESTION = 0x3f;
 const SLASH = 0x2f;
+const HASH = 0x23;
 const SPACE = 0x20;
 const TAB = 0x09;
 const NEWLINE = 0x0a;
@@ -18,6 +19,7 @@ function isWhitespace(charCode: CharCode): boolean {
 class Scanner {
 	readonly source: string;
 	readonly tokens: Token[] = [];
+	depth = 0;
 	/** The start of the current token */
 	protected offset = 0;
 	/** The end of the current token (non-inclusive) */
@@ -122,6 +124,9 @@ class Scanner {
 		if (type === TokenType.NEWLINE) {
 			this.line++;
 		}
+		if (type === TokenType.INDENT) {
+			this.depth = token.value.length;
+		}
 
 		this.tokens.push(token);
 
@@ -186,8 +191,7 @@ const scanIndent: ScanState = (scanner) => {
 	scanner.matchRun("\t");
 	scanner.emit(TokenType.INDENT);
 
-	if (scanner.match("#")) {
-		scanner.ignore();
+	if (scanner.peek() === HASH) {
 		return scanComment;
 	}
 
@@ -210,11 +214,58 @@ const scanNewline: ScanState = (scanner) => {
 	return scanIndent;
 };
 
-const scanValueText = scanText();
-const scanColon = scanDelimiter(":", TokenType.COLON, scanValueText);
+const scanValueText = scanText()!;
+const scanMultilineText: ScanState = (scanner) => {
+	let startDepth = scanner.depth;
+
+	let next = scanIndent(scanner);
+
+	while (next && scanner.depth > startDepth) {
+		let { line } = scanner.loc();
+		let nextInLine: ScanState = scanValueText;
+
+		while (nextInLine && scanner.loc().line === line) {
+			nextInLine = nextInLine(scanner);
+		}
+
+		next = scanIndent(scanner);
+	}
+
+	return next;
+};
+const scanDoubleColon: ScanState = (scanner) => {
+	scanner.advance();
+	scanner.emit(TokenType.DOUBLE_COLON);
+	scanner.skipWhitespace();
+
+	if (scanner.isAtEnd()) return null;
+
+	scanNewline(scanner);
+	return scanMultilineText;
+};
+const scanColon: ScanState = (scanner) => {
+	scanner.advance();
+
+	if (scanner.peek() === COLON) {
+		return scanDoubleColon;
+	}
+
+	scanner.emit(TokenType.COLON);
+	scanner.skipWhitespace();
+
+	return scanValueText;
+};
 const scanEquals = scanDelimiter("=", TokenType.EQUALS, scanValueText);
 const scanQuestion = scanDelimiter("?", TokenType.QUESTION, scanValueText);
 const scanSlash = scanDelimiter("/", TokenType.SLASH, scanNewline);
+
+const DELIMITER_TABLE = new Map([
+	[COLON, scanColon],
+	[EQUALS, scanEquals],
+	[QUESTION, scanQuestion],
+	[SLASH, scanSlash],
+]);
+
 const scanKeyText = scanText(
 	new Map([
 		[COLON, scanColon],

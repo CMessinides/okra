@@ -19,7 +19,6 @@ function isWhitespace(charCode: CharCode): boolean {
 class Scanner {
 	readonly source: string;
 	readonly tokens: Token[] = [];
-	depth = 0;
 	/** The start of the current token */
 	protected offset = 0;
 	/** The end of the current token (non-inclusive) */
@@ -124,9 +123,6 @@ class Scanner {
 		if (type === TokenType.NEWLINE) {
 			this.line++;
 		}
-		if (type === TokenType.INDENT) {
-			this.depth = token.value.length;
-		}
 
 		this.tokens.push(token);
 
@@ -214,71 +210,68 @@ const scanNewline: ScanState = (scanner) => {
 	return scanIndent;
 };
 
-const scanValueText = scanText();
-const scanColon = scanDelimiter(":", TokenType.COLON, scanValueText);
-const scanEquals = scanDelimiter("=", TokenType.EQUALS, scanValueText);
-const scanQuestion = scanDelimiter("?", TokenType.QUESTION, scanValueText);
-const scanSlash = scanDelimiter("/", TokenType.SLASH, scanNewline);
+const scanValueText: ScanState = (scanner) => {
+	let next: ScanState | null = null;
+
+	while (!scanner.isAtEnd()) {
+		let c = scanner.peek();
+
+		if (c === NEWLINE) {
+			next = scanNewline;
+			break;
+		}
+
+		scanner.advance();
+	}
+
+	if (scanner.hasAdvanced()) {
+		scanner.emit(TokenType.TEXT);
+	}
+
+	return next;
+};
 
 const DELIMITER_TABLE = new Map([
-	[COLON, scanColon],
-	[EQUALS, scanEquals],
-	[QUESTION, scanQuestion],
-	[SLASH, scanSlash],
+	[COLON, scanDelimiter(TokenType.COLON, scanValueText)],
+	[EQUALS, scanDelimiter(TokenType.EQUALS, scanValueText)],
+	[QUESTION, scanDelimiter(TokenType.QUESTION, scanValueText)],
+	[SLASH, scanDelimiter(TokenType.SLASH, scanNewline)],
 ]);
 
-const scanKeyText = scanText(
-	new Map([
-		[COLON, scanColon],
-		[EQUALS, scanEquals],
-		[QUESTION, scanQuestion],
-		[SLASH, scanSlash],
-	])
-);
-
-function scanText(branches: Map<CharCode, ScanState> = new Map()): ScanState {
-	return function (scanner) {
-		let next: ScanState | null = null;
-
-		while (!scanner.isAtEnd()) {
-			let c = scanner.peek();
-
-			if (c === NEWLINE) {
-				next = scanNewline;
-				break;
-			}
-
-			if (branches.has(c)) {
-				next = branches.get(c)!;
-				break;
-			}
-
-			scanner.advance();
-		}
-
-		if (scanner.hasAdvanced()) {
-			scanner.emit(TokenType.TEXT);
-		}
-
-		return next;
-	};
-}
-
-function scanDelimiter(
-	delimiter: string,
-	type: TokenType,
-	next: ScanState
-): ScanState {
+function scanDelimiter(type: TokenType, next: ScanState): ScanState {
 	return (scanner) => {
-		for (let i = 0; i < delimiter.length; i++) {
-			scanner.advance();
-		}
-
+		scanner.advance(); // Consume the delimiter
 		scanner.emit(type);
 		scanner.skipWhitespace();
 
 		return next;
 	};
 }
+
+const scanKeyText: ScanState = (scanner) => {
+	let next: ScanState | null = null;
+
+	while (!scanner.isAtEnd()) {
+		let c = scanner.peek();
+
+		if (c === NEWLINE) {
+			next = scanNewline;
+			break;
+		}
+
+		if (DELIMITER_TABLE.has(c)) {
+			next = DELIMITER_TABLE.get(c)!;
+			break;
+		}
+
+		scanner.advance();
+	}
+
+	if (scanner.hasAdvanced()) {
+		scanner.emit(TokenType.TEXT);
+	}
+
+	return next;
+};
 
 type ScanState = (scanner: Scanner) => ScanState | null;

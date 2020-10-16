@@ -3,58 +3,53 @@
   "ok": true,
   "root": {
     "type": "list",
-    "items": [
+    "associative": false,
+    "entries": [
       {
-        "type": "item",
+        "type": "entry",
         "key": null,
         "value": {
           "type": "boolean",
-          "literal": "true",
           "value": true
         }
       },
       {
-        "type": "item",
+        "type": "entry",
         "key": null,
         "value": {
           "type": "boolean",
-          "literal": "false",
           "value": false
         }
       },
       {
-        "type": "item",
+        "type": "entry",
         "key": null,
         "value": {
           "type": "boolean",
-          "literal": "yes",
           "value": true
         }
       },
       {
-        "type": "item",
+        "type": "entry",
         "key": null,
         "value": {
           "type": "boolean",
-          "literal": "no",
           "value": false
         }
       },
       {
-        "type": "item",
+        "type": "entry",
         "key": null,
         "value": {
           "type": "boolean",
-          "literal": "y",
           "value": true
         }
       },
       {
-        "type": "item",
+        "type": "entry",
         "key": null,
         "value": {
           "type": "boolean",
-          "literal": "n",
           "value": false
         }
       }

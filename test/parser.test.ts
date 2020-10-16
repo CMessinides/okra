@@ -6,8 +6,8 @@ import { collectCases } from "./helpers/cases";
 
 for (const testCase of collectCases(path.join(__dirname, "cases"))) {
 	testCase.define(test, async () => {
-		const [input, output] = await testCase.load("source.caml", "ast.json");
-		const result = parse(input);
+		const [input, output] = await testCase.load("tokens.json", "ast.json");
+		const result = parse(JSON.parse(input));
 
 		assert.fixture(JSON.stringify(result, null, 2), output);
 	});

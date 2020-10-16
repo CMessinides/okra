@@ -1,323 +1,188 @@
-import { Source, SourceLocation } from "./source";
+import {
+	CamlBoolean,
+	CamlDocument,
+	CamlEntry,
+	CamlKey,
+	CamlList,
+	CamlString,
+	CamlType,
+	CamlValue,
+	ParseError,
+} from "./ast";
+import { Token, TokenType } from "./tokens";
 
-const PARSER_TABLE = new Map<string, ValueParser>([
-	[":", parseString],
-	["=", parseNumber],
-	["/", parseListValue],
-	["?", parseBoolean],
-]);
+class Parser {
+	readonly tokens: Token[];
+	depth = -1;
+	readonly errors: ParseError[] = [];
+	protected offset = 0;
 
-function getValueParser(delimiter: string) {
-	return PARSER_TABLE.get(delimiter) ?? null;
-}
-
-class ParseError extends Error {
-	readonly loc: SourceLocation;
-	protected readonly source: Source;
-
-	constructor(message: string, loc: SourceLocation, source: Source) {
-		super(message);
-		this.loc = loc;
-		this.source = source;
+	constructor(tokens: Token[]) {
+		this.tokens = tokens;
 	}
 
-	toJSON() {
-		return {
-			loc: this.loc,
-			message: this.message,
-		};
+	advance(): Token {
+		if (!this.isAtEnd()) this.offset++;
+		return this.previous();
+	}
+
+	peek(): Token {
+		return this.tokens[this.offset];
+	}
+
+	previous(): Token {
+		return this.tokens[this.offset - 1];
+	}
+
+	match(type: TokenType, explain: string | ((token: Token) => string)): Token {
+		if (this.peek().type !== type) {
+			let message =
+				typeof explain === "function" ? explain(this.peek()) : explain;
+			let error = new ParseError(`Unexpected token: ${message}`);
+			this.errors.push(error);
+			throw error;
+		}
+
+		return this.advance();
+	}
+
+	isAtEnd(): boolean {
+		return this.peek().type === TokenType.EOF;
 	}
 }
 
-export function parse(input: string): CamlDocument {
-	let source = Source.from(input);
-	let errors: ParseError[] = [];
-
-	let error: ErrorFn = (msg, loc = source.loc()) => {
-		let e = new ParseError(msg, loc, source);
-		errors.push(e);
-		return e;
-	};
-
-	let root = parseList(source, error, 0);
+export function parse(tokens: Token[]): CamlDocument {
+	let parser = new Parser(tokens);
+	let root = parseList(parser);
 
 	return {
 		type: CamlType.DOCUMENT,
-		ok: errors.length === 0,
+		ok: parser.errors.length === 0,
 		root,
-		errors,
+		errors: parser.errors,
 	};
 }
 
-const HASH = "#".charCodeAt(0);
+enum ListMode {
+	UNKNOWN,
+	ASSOCIATIVE,
+	NOT_ASSOCIATIVE,
+}
 
-function parseList(source: Source, error: ErrorFn, depth: number): CamlList {
-	let items: CamlItem[] = [];
+function parseList(parser: Parser): CamlList {
+	let entries: CamlEntry[] = [];
+	let mode = ListMode.UNKNOWN;
+	parser.depth++;
 
-	while (!source.isAtEnd()) {
-		try {
-			let nextDepth = source.peekDepth();
+	while (parser.peek().type !== TokenType.EOF) {
+		let indent = parser.match(
+			TokenType.INDENT,
+			(token) => `Expected indentation, got '${token.value}' instead`
+		);
 
-			if (source.peekNth(nextDepth) === HASH) {
-				// We've hit a comment - consume and continue
-				source.advanceUntilNewline();
-				source.skipNewlines();
-				continue;
-			}
-
-			if (nextDepth < depth) {
-				break;
-			}
-
-			if (nextDepth > depth) {
-				throw error(
-					`Indentation error: expected ${depth} ${
-						depth === 1 ? "tab" : "tabs"
-					}, but got ${nextDepth}.`
-				);
-			}
-
-			source.advanceChars(depth);
-			items.push(parseItem(source, error, depth));
-		} catch (e) {
-			if (e instanceof ParseError) {
-				synchronize(source);
-				continue;
-			}
-
-			throw e;
+		if (indent.value.length < parser.depth) {
+			break;
 		}
+
+		if (indent.value.length > parser.depth) {
+			// TODO: Parser error
+			continue;
+		}
+
+		let entry = parseEntry(parser);
+
+		if (mode === ListMode.UNKNOWN) {
+			mode =
+				entry.key !== null ? ListMode.ASSOCIATIVE : ListMode.NOT_ASSOCIATIVE;
+		} else {
+			// TODO: Check for mode mismatch and error
+		}
+
+		entries.push(entry);
 	}
 
+	parser.depth--;
 	return {
 		type: CamlType.LIST,
-		items,
+		associative: mode === ListMode.ASSOCIATIVE,
+		entries,
 	};
 }
 
-function parseItem(source: Source, error: ErrorFn, depth: number): CamlItem {
-	source.skipSpaces();
+function parseEntry(parser: Parser): CamlEntry {
+	let key: CamlKey | null = null;
 
-	let key = parseKey(source);
-	let parseValue = getValueParser(source.advanceIfRegExp(/^[:=/?]/));
-
-	if (!parseValue) {
-		if (source.isAtEnd()) {
-			throw error("Unexpected end of file.");
-		}
-
-		let nextChar = String.fromCharCode(source.peek());
-		throw error(
-			`${JSON.stringify(
-				nextChar
-			)} is not a valid delimiter; expected one of: ":", "=", "/", "?".`
-		);
+	if (parser.peek().type === TokenType.TEXT) {
+		key = {
+			type: CamlType.KEY,
+			value: parser.advance().value,
+		};
 	}
 
-	let value = parseValue(source, error, depth);
-
-	// Consume newlines if necessary
-	if (
-		// Lists handle their own newlines...
-		value.type !== CamlType.LIST &&
-		// ...and we don't need a newline if there's no more input...
-		!source.isAtEnd() &&
-		// ...but otherwise we should consume at least one newline.
-		!source.skipNewlines().length
-	) {
-		throw error("Expected newline after value.");
-	}
+	let parseValue = VALUE_TABLE.get(parser.advance().type)!;
+	let value = parseValue(parser);
 
 	return {
-		type: CamlType.ITEM,
+		type: CamlType.ENTRY,
 		key,
 		value,
 	};
 }
 
-function parseKey(source: Source): CamlKey | null {
-	let literal = source.advanceIfRegExp(/^(?:\\.|[^:=/?\n])+/).trim();
+const VALUE_TABLE = new Map<TokenType, (parser: Parser) => CamlValue>([
+	[TokenType.COLON, parseString],
+	[TokenType.QUESTION, parseBoolean],
+]);
 
-	if (!literal) {
-		return null;
+function parseString(parser: Parser): CamlString {
+	let value = parser.advance().value;
+
+	if (!parser.isAtEnd()) {
+		parser.match(
+			TokenType.NEWLINE,
+			(token) => `Expected line break after string, got ${token}.`
+		);
 	}
-
-	return {
-		type: CamlType.KEY,
-		literal,
-		value: literal,
-	};
-}
-
-function parseString(source: Source, error: ErrorFn): CamlString {
-	let literal = source.advanceUntilNewline().trim();
 
 	return {
 		type: CamlType.STRING,
-		literal,
-		value: literal,
+		value,
 	};
 }
 
-const DOT = ".".charCodeAt(0);
-const LOWER_E = "e".charCodeAt(0);
+const TRUE_STRINGS = new Set(["true", "yes", "y"]);
+const FALSE_STRINGS = new Set(["false", "no", "n"]);
+function toBooleanValue(token: Token) {
+	let v = token.value.toLowerCase();
 
-function parseNumber(source: Source, error: ErrorFn): CamlNumber {
-	source.skipSpaces();
-
-	let format = NumberFormat.INT;
-	let intLiteral = source.advanceIfRegExp(/^\d+/);
-
-	if (!intLiteral) {
-		throw error("Numbers must start with a digit.");
+	if (TRUE_STRINGS.has(v)) {
+		return true;
 	}
 
-	if (!source.match(DOT)) {
-		// Number is an integer
-		return {
-			type: CamlType.NUMBER,
-			format,
-			literal: intLiteral,
-			value: parseInt(intLiteral),
-		};
+	if (FALSE_STRINGS.has(v)) {
+		return false;
 	}
 
-	format = NumberFormat.FLOAT;
-
-	let floatLiteral = source.advanceIfRegExp(/^\d+/);
-	if (!floatLiteral) {
-		throw error("Decimal point must be followed by a digit.");
-	}
-
-	let literal = intLiteral + "." + floatLiteral;
-
-	if (source.match(LOWER_E)) {
-		let exponent = source.advanceIfRegExp(/^-?\d+/);
-
-		if (!exponent) {
-			throw error(
-				'Exponent notation ("e") must be followed by a positive or negative number.'
-			);
-		}
-
-		literal += "e" + exponent;
-	}
-
-	return {
-		type: CamlType.NUMBER,
-		format,
-		literal,
-		value: parseFloat(literal),
-	};
+	return null;
 }
 
-function parseListValue(
-	source: Source,
-	error: ErrorFn,
-	depth: number
-): CamlList {
-	if (!source.isAtEnd() && !source.skipNewlines().length) {
-		throw error("Expected newline before list items.");
-	}
+function parseBoolean(parser: Parser): CamlBoolean {
+	let token = parser.match(
+		TokenType.TEXT,
+		(token) => `Expected boolean, got ${token}`
+	);
 
-	return parseList(source, error, depth + 1);
-}
+	let value = toBooleanValue(token)!;
 
-const TRUE_LITERALS = new Set(["true", "yes", "y"]);
-const FALSE_LITERALS = new Set(["false", "no", "n"]);
-
-function parseBoolean(source: Source, error: ErrorFn): CamlBoolean {
-	let literal = source.advanceUntilNewline().trim();
-
-	let value: boolean;
-	if (TRUE_LITERALS.has(literal.toLowerCase())) {
-		value = true;
-	} else if (FALSE_LITERALS.has(literal.toLowerCase())) {
-		value = false;
-	} else {
-		throw error(
-			`${JSON.stringify(
-				literal
-			)} is not a valid boolean value; must be one of: ${[
-				...TRUE_LITERALS,
-				...FALSE_LITERALS,
-			]
-				.map((l) => `"${l}"`)
-				.join(", ")}.`
+	if (!parser.isAtEnd()) {
+		parser.match(
+			TokenType.NEWLINE,
+			(token) => `Expected line break after boolean, got ${token}.`
 		);
 	}
 
 	return {
 		type: CamlType.BOOLEAN,
-		literal,
 		value,
 	};
 }
-
-function synchronize(source: Source) {
-	source.advanceUntilNewline();
-	source.skipNewlines();
-}
-
-enum CamlType {
-	DOCUMENT = "document",
-	LIST = "list",
-	ITEM = "item",
-	KEY = "key",
-	STRING = "string",
-	NUMBER = "number",
-	BOOLEAN = "boolean",
-}
-
-interface CamlDocument {
-	type: CamlType.DOCUMENT;
-	ok: boolean;
-	root: CamlList;
-	errors: ParseError[];
-}
-
-interface CamlList {
-	type: CamlType.LIST;
-	items: CamlItem[];
-}
-
-interface CamlItem {
-	type: CamlType.ITEM;
-	key: CamlKey | null;
-	value: CamlValue;
-}
-
-interface CamlKey {
-	type: CamlType.KEY;
-	literal: string;
-	value: string;
-}
-
-type CamlValue = CamlString | CamlNumber | CamlList | CamlBoolean;
-
-interface CamlString {
-	type: CamlType.STRING;
-	literal: string;
-	value: string;
-}
-
-enum NumberFormat {
-	INT = "int",
-	FLOAT = "float",
-}
-
-interface CamlNumber {
-	type: CamlType.NUMBER;
-	format: NumberFormat;
-	literal: string;
-	value: number;
-}
-
-interface CamlBoolean {
-	type: CamlType.BOOLEAN;
-	literal: string;
-	value: boolean;
-}
-
-type ValueParser = (source: Source, error: ErrorFn, depth: number) => CamlValue;
-type ErrorFn = (msg: string, loc?: SourceLocation) => ParseError;

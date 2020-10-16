@@ -3,17 +3,16 @@
   "ok": true,
   "root": {
     "type": "list",
-    "items": [
+    "associative": true,
+    "entries": [
       {
-        "type": "item",
+        "type": "entry",
         "key": {
           "type": "key",
-          "literal": "key with\ttab",
           "value": "key with\ttab"
         },
         "value": {
           "type": "string",
-          "literal": "value with\ttab",
           "value": "value with\ttab"
         }
       }

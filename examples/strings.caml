@@ -1,5 +1,2 @@
 hello: world
-multiline::
-	Multiline strings can extend
-	across a block of multiple 
-	lines.
+keys with spaces: and values with spaces

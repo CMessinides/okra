@@ -27,6 +27,13 @@ class Parser {
 		return this.previous();
 	}
 
+	backup(): Token {
+		if (this.offset > 0) {
+			this.offset--;
+		}
+		return this.peek();
+	}
+
 	peek(): Token {
 		return this.tokens[this.offset];
 	}
@@ -75,10 +82,10 @@ function parseList(parser: Parser): CamlList {
 	let mode = ListMode.UNKNOWN;
 	parser.depth++;
 
-	while (parser.peek().type !== TokenType.EOF) {
+	while (!parser.isAtEnd()) {
 		let indent = parser.match(
 			TokenType.INDENT,
-			(token) => `Expected indentation, got '${token.value}' instead`
+			(token) => `Expected indentation, got ${token}.`
 		);
 
 		// Skip empty lines
@@ -88,12 +95,15 @@ function parseList(parser: Parser): CamlList {
 		}
 
 		if (indent.value.length < parser.depth) {
+			parser.backup();
 			break;
 		}
 
 		if (indent.value.length > parser.depth) {
 			// TODO: Parser error
-			continue;
+			throw new Error(
+				`Indentation error: expected ${parser.depth}, got ${indent.value.length}`
+			);
 		}
 
 		let entry = parseEntry(parser);

@@ -33,12 +33,13 @@ try {
 	process.exit(1);
 }
 
+let tokens = scan(data);
 if (command === "scan") {
-	console.log(JSON.stringify(scan(data), null, 2));
+	console.log(JSON.stringify(tokens, null, 2));
 	process.exit(0);
 }
 
 if (command === "parse") {
-	console.log(JSON.stringify(parse(data), null, 2));
+	console.log(JSON.stringify(parse(tokens), null, 2));
 	process.exit(0);
 }

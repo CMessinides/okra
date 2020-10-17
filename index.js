@@ -1,8 +1,9 @@
 const { readFileSync } = require("fs");
 const { scan } = require("./dist/scanner");
 const { parse } = require("./dist/parser");
+const { resolve } = require("./dist/resolver");
 
-const commands = new Set(["scan", "parse"]);
+const commands = new Set(["scan", "parse", "resolve"]);
 if (!commands.has(process.argv[2])) {
 	if (process.argv[2] !== undefined) {
 		console.error(`ERROR: Unrecognized command: ${process.argv[2]}.`);
@@ -10,8 +11,9 @@ if (!commands.has(process.argv[2])) {
 		console.error("ERROR: No command provided.");
 	}
 	console.error("Available commands:");
-	console.error("\tcaml scan [file]");
-	console.error("\tcaml parse [file]");
+	for (let command of commands) {
+		console.error(`\tcaml ${command} [file]`);
+	}
 	process.exit(1);
 }
 
@@ -39,7 +41,11 @@ if (command === "scan") {
 	process.exit(0);
 }
 
+let document = parse(tokens);
 if (command === "parse") {
-	console.log(JSON.stringify(parse(tokens), null, 2));
+	console.log(JSON.stringify(document, null, 2));
 	process.exit(0);
 }
+
+// command === "resolve"
+console.log(JSON.stringify(resolve(document), null, 2));

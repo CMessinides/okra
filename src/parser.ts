@@ -4,6 +4,7 @@ import {
 	CamlEntry,
 	CamlKey,
 	CamlList,
+	CamlNumber,
 	CamlString,
 	CamlType,
 	CamlValue,
@@ -80,6 +81,12 @@ function parseList(parser: Parser): CamlList {
 			(token) => `Expected indentation, got '${token.value}' instead`
 		);
 
+		// Skip empty lines
+		if (parser.peek().type === TokenType.NEWLINE || parser.isAtEnd()) {
+			parser.advance();
+			continue;
+		}
+
 		if (indent.value.length < parser.depth) {
 			break;
 		}
@@ -132,6 +139,8 @@ function parseEntry(parser: Parser): CamlEntry {
 const VALUE_TABLE = new Map<TokenType, (parser: Parser) => CamlValue>([
 	[TokenType.COLON, parseString],
 	[TokenType.QUESTION, parseBoolean],
+	[TokenType.EQUALS, parseNumber],
+	[TokenType.SLASH, parseNestedList],
 ]);
 
 function parseString(parser: Parser): CamlString {
@@ -185,4 +194,40 @@ function parseBoolean(parser: Parser): CamlBoolean {
 		type: CamlType.BOOLEAN,
 		value,
 	};
+}
+
+function parseNumber(parser: Parser): CamlNumber {
+	let token = parser.match(
+		TokenType.TEXT,
+		(token) => `Expected number, got ${token}`
+	);
+
+	let value = parseFloat(token.value);
+
+	if (Number.isNaN(value)) {
+		// TODO: Parser error
+	}
+
+	if (!parser.isAtEnd()) {
+		parser.match(
+			TokenType.NEWLINE,
+			(token) => `Expected line break after number, got ${token}.`
+		);
+	}
+
+	return {
+		type: CamlType.NUMBER,
+		value,
+	};
+}
+
+function parseNestedList(parser: Parser): CamlList {
+	if (!parser.isAtEnd()) {
+		parser.match(
+			TokenType.NEWLINE,
+			(token) => `Expected line break before start of list, got ${token}.`
+		);
+	}
+
+	return parseList(parser);
 }

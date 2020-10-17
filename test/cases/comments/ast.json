@@ -3,23 +3,23 @@
   "ok": true,
   "root": {
     "type": "list",
-    "items": [
+    "associative": true,
+    "entries": [
       {
-        "type": "item",
+        "type": "entry",
         "key": {
           "type": "key",
-          "literal": "foo",
           "value": "foo"
         },
         "value": {
           "type": "list",
-          "items": [
+          "associative": false,
+          "entries": [
             {
-              "type": "item",
+              "type": "entry",
               "key": null,
               "value": {
                 "type": "string",
-                "literal": "bar",
                 "value": "bar"
               }
             }

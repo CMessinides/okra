@@ -3,27 +3,26 @@
   "ok": true,
   "root": {
     "type": "list",
-    "items": [
+    "associative": true,
+    "entries": [
       {
-        "type": "item",
+        "type": "entry",
         "key": {
           "type": "key",
-          "literal": "list",
           "value": "list"
         },
         "value": {
           "type": "list",
-          "items": [
+          "associative": true,
+          "entries": [
             {
-              "type": "item",
+              "type": "entry",
               "key": {
                 "type": "key",
-                "literal": "foo",
                 "value": "foo"
               },
               "value": {
                 "type": "string",
-                "literal": "bar",
                 "value": "bar"
               }
             }

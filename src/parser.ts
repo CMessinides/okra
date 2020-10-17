@@ -121,7 +121,7 @@ function parseList(parser: Parser): CamlList {
 	parser.depth--;
 	return {
 		type: CamlType.LIST,
-		associative: mode === ListMode.ASSOCIATIVE,
+		associative: mode !== ListMode.NOT_ASSOCIATIVE,
 		entries,
 	};
 }

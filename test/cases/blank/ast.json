@@ -3,7 +3,7 @@
   "ok": true,
   "root": {
     "type": "list",
-    "associative": false,
+    "associative": true,
     "entries": []
   },
   "errors": []

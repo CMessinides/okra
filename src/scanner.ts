@@ -197,11 +197,13 @@ const scanIndent: ScanState = (scanner) => {
 };
 
 const scanComment: ScanState = (scanner) => {
-	while (scanner.peek() !== NEWLINE) {
+	do {
 		scanner.advance();
-		scanner.ignore();
-		if (scanner.isAtEnd()) return null;
-	}
+	} while (!scanner.isAtEnd() && scanner.peek() !== NEWLINE);
+
+	scanner.emit(TokenType.COMMENT);
+
+	if (scanner.isAtEnd()) return null;
 
 	return scanNewline;
 };

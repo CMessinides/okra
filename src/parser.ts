@@ -104,6 +104,13 @@ function parseList(parser: Parser): CamlList {
 				continue;
 			}
 
+			// Skip comments
+			if (parser.peek().type === TokenType.COMMENT) {
+				parser.advance();
+				if (!parser.isAtEnd()) parser.match(TokenType.NEWLINE);
+				continue;
+			}
+
 			if (indent.value.length < parser.depth) {
 				parser.backup();
 				break;

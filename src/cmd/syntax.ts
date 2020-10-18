@@ -34,7 +34,7 @@ class Highlighter {
 		let { value, loc } = this.previous();
 
 		if (this.consumed < loc.offset) {
-			this.output += chalk.gray(this.source.slice(this.consumed, loc.offset));
+			this.output += this.source.slice(this.consumed, loc.offset);
 		}
 
 		this.output += fmt ? fmt(value) : value;
@@ -66,6 +66,10 @@ const highlightIndent: HighlightStateFn = (h) => {
 const highlightKey: HighlightStateFn = (h) => {
 	let next = h.peek();
 
+	if (next.type === TokenType.COMMENT) {
+		return highlightComment;
+	}
+
 	if (next.type === TokenType.NEWLINE) {
 		return highlightNewline;
 	}
@@ -76,6 +80,12 @@ const highlightKey: HighlightStateFn = (h) => {
 	}
 
 	return highlightDelimiter;
+};
+
+const highlightComment: HighlightStateFn = (h) => {
+	h.advance();
+	h.write(chalk.gray);
+	return highlightNewline;
 };
 
 const highlightDelimiter: HighlightStateFn = (h) => {

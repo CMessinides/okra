@@ -6,6 +6,7 @@ export enum TokenType {
 	INDENT = "INDENT",
 	NEWLINE = "NEWLINE",
 	// Text data
+	COMMENT = "COMMENT",
 	TEXT = "TEXT",
 	ESCAPE = "ESCAPE",
 	// Punctuation

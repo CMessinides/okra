@@ -13,10 +13,14 @@
 		"test:watch": "watchlist src test -- yarn -s test",
 		"coverage": "nyc yarn test"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"chalk": "^4.1.0",
+		"yargs": "^16.1.0"
+	},
 	"devDependencies": {
 		"@istanbuljs/nyc-config-typescript": "^1.0.1",
 		"@types/node": "^14.11.2",
+		"@types/yargs": "^15.0.9",
 		"nyc": "^15.1.0",
 		"sentence-case": "^3.0.3",
 		"ts-node": "^9.0.0",

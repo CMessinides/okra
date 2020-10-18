@@ -1,0 +1,35 @@
+{
+  "type": "document",
+  "ok": false,
+  "root": {
+    "type": "list",
+    "associative": true,
+    "entries": [
+      {
+        "type": "entry",
+        "key": {
+          "type": "key",
+          "value": "still parsed"
+        },
+        "value": {
+          "type": "boolean",
+          "value": true
+        }
+      }
+    ]
+  },
+  "errors": [
+    {
+      "code": "CAML_INVALID_INDENT",
+      "message": "Invalid indentation: expected 0 tabs, but got 1",
+      "token": {
+        "type": "INDENT",
+        "value": "\t",
+        "loc": {
+          "offset": 0,
+          "line": 1
+        }
+      }
+    }
+  ]
+}

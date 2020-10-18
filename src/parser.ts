@@ -42,16 +42,28 @@ class Parser {
 		return this.tokens[this.offset - 1];
 	}
 
-	match(type: TokenType, explain: string | ((token: Token) => string)): Token {
-		if (this.peek().type !== type) {
-			let message =
-				typeof explain === "function" ? explain(this.peek()) : explain;
-			let error = new ParseError(`Unexpected token: ${message}`);
-			this.errors.push(error);
-			throw error;
+	match(type: TokenType): Token {
+		let next = this.peek();
+		if (next.type !== type) {
+			this.error(ParseError.unexpectedToken(next));
 		}
 
 		return this.advance();
+	}
+
+	error(message: string, token?: Token): never;
+	error(error: ParseError): never;
+	error(reason: ParseError | string, token: Token = this.previous()): never {
+		let error =
+			typeof reason === "string" ? new ParseError(reason, token) : reason;
+		this.errors.push(error);
+		throw error;
+	}
+
+	synchronize() {
+		while (!this.isAtEnd() && this.previous().type !== TokenType.NEWLINE) {
+			this.advance();
+		}
 	}
 
 	isAtEnd(): boolean {
@@ -83,39 +95,42 @@ function parseList(parser: Parser): CamlList {
 	parser.depth++;
 
 	while (!parser.isAtEnd()) {
-		let indent = parser.match(
-			TokenType.INDENT,
-			(token) => `Expected indentation, got ${token}.`
-		);
+		try {
+			let indent = parser.match(TokenType.INDENT);
 
-		// Skip empty lines
-		if (parser.peek().type === TokenType.NEWLINE || parser.isAtEnd()) {
-			parser.advance();
-			continue;
+			// Skip empty lines
+			if (parser.peek().type === TokenType.NEWLINE || parser.isAtEnd()) {
+				parser.advance();
+				continue;
+			}
+
+			if (indent.value.length < parser.depth) {
+				parser.backup();
+				break;
+			}
+
+			if (indent.value.length > parser.depth) {
+				parser.error(ParseError.invalidIndentation(indent, parser.depth));
+			}
+
+			let entry = parseEntry(parser);
+
+			if (mode === ListMode.UNKNOWN) {
+				mode =
+					entry.key !== null ? ListMode.ASSOCIATIVE : ListMode.NOT_ASSOCIATIVE;
+			} else {
+				// TODO: Check for mode mismatch and error
+			}
+
+			entries.push(entry);
+		} catch (e) {
+			if (e instanceof ParseError) {
+				parser.synchronize();
+				continue;
+			}
+
+			throw e;
 		}
-
-		if (indent.value.length < parser.depth) {
-			parser.backup();
-			break;
-		}
-
-		if (indent.value.length > parser.depth) {
-			// TODO: Parser error
-			throw new Error(
-				`Indentation error: expected ${parser.depth}, got ${indent.value.length}`
-			);
-		}
-
-		let entry = parseEntry(parser);
-
-		if (mode === ListMode.UNKNOWN) {
-			mode =
-				entry.key !== null ? ListMode.ASSOCIATIVE : ListMode.NOT_ASSOCIATIVE;
-		} else {
-			// TODO: Check for mode mismatch and error
-		}
-
-		entries.push(entry);
 	}
 
 	parser.depth--;
@@ -157,10 +172,7 @@ function parseString(parser: Parser): CamlString {
 	let value = parser.advance().value;
 
 	if (!parser.isAtEnd()) {
-		parser.match(
-			TokenType.NEWLINE,
-			(token) => `Expected line break after string, got ${token}.`
-		);
+		parser.match(TokenType.NEWLINE);
 	}
 
 	return {
@@ -186,18 +198,12 @@ function toBooleanValue(token: Token) {
 }
 
 function parseBoolean(parser: Parser): CamlBoolean {
-	let token = parser.match(
-		TokenType.TEXT,
-		(token) => `Expected boolean, got ${token}`
-	);
+	let token = parser.match(TokenType.TEXT);
 
 	let value = toBooleanValue(token)!;
 
 	if (!parser.isAtEnd()) {
-		parser.match(
-			TokenType.NEWLINE,
-			(token) => `Expected line break after boolean, got ${token}.`
-		);
+		parser.match(TokenType.NEWLINE);
 	}
 
 	return {
@@ -207,10 +213,7 @@ function parseBoolean(parser: Parser): CamlBoolean {
 }
 
 function parseNumber(parser: Parser): CamlNumber {
-	let token = parser.match(
-		TokenType.TEXT,
-		(token) => `Expected number, got ${token}`
-	);
+	let token = parser.match(TokenType.TEXT);
 
 	let value = parseFloat(token.value);
 
@@ -219,10 +222,7 @@ function parseNumber(parser: Parser): CamlNumber {
 	}
 
 	if (!parser.isAtEnd()) {
-		parser.match(
-			TokenType.NEWLINE,
-			(token) => `Expected line break after number, got ${token}.`
-		);
+		parser.match(TokenType.NEWLINE);
 	}
 
 	return {
@@ -233,10 +233,7 @@ function parseNumber(parser: Parser): CamlNumber {
 
 function parseNestedList(parser: Parser): CamlList {
 	if (!parser.isAtEnd()) {
-		parser.match(
-			TokenType.NEWLINE,
-			(token) => `Expected line break before start of list, got ${token}.`
-		);
+		parser.match(TokenType.NEWLINE);
 	}
 
 	return parseList(parser);

@@ -193,7 +193,12 @@ const VALUE_TABLE = new Map<TokenType, (parser: Parser) => CamlValue>([
 ]);
 
 function parseString(parser: Parser): CamlString {
-	let value = parser.advance().value;
+	let value = "";
+	let next = parser.peek();
+
+	if (next.type !== TokenType.NEWLINE) {
+		value = parser.match(TokenType.TEXT).value;
+	}
 
 	if (!parser.isAtEnd()) {
 		parser.match(TokenType.NEWLINE);

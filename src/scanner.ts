@@ -25,6 +25,8 @@ class Scanner {
 	protected cursor = 0;
 	/** The line number of the current token */
 	protected line = 1;
+	/** The column number of the current token */
+	protected col = 1;
 
 	constructor(source: string) {
 		this.source = source;
@@ -64,6 +66,18 @@ class Scanner {
 	 * Ignore all characters in the current token.
 	 */
 	ignore(): void {
+		let substr = this.source.slice(this.offset, this.cursor);
+		for (let i = 0; i < substr.length; i++) {
+			let char = substr.charCodeAt(i);
+
+			if (char === NEWLINE) {
+				this.line++;
+				this.col = 1;
+			} else {
+				this.col++;
+			}
+		}
+
 		this.offset = this.cursor;
 	}
 
@@ -104,8 +118,9 @@ class Scanner {
 	skipWhitespace(): void {
 		while (isWhitespace(this.peek())) {
 			this.advance();
-			this.ignore();
 		}
+
+		this.ignore();
 	}
 
 	/**
@@ -119,13 +134,9 @@ class Scanner {
 		};
 
 		// Setup state for the next token
-		this.offset = this.cursor;
-		if (type === TokenType.NEWLINE) {
-			this.line++;
-		}
+		this.ignore();
 
 		this.tokens.push(token);
-
 		return token;
 	}
 
@@ -164,6 +175,7 @@ class Scanner {
 		return {
 			offset: this.offset,
 			line: this.line,
+			col: this.col,
 		};
 	}
 }

@@ -27,7 +27,8 @@
         "value": "\t",
         "loc": {
           "offset": 0,
-          "line": 1
+          "line": 1,
+          "col": 1
         }
       }
     }

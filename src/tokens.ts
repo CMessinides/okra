@@ -24,4 +24,5 @@ export interface Token {
 export interface TokenLocation {
 	offset: number;
 	line: number;
+	col: number;
 }

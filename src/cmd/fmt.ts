@@ -1,6 +1,7 @@
 import * as path from "path";
 import chalk from "chalk";
 import { ParseError } from "../ast";
+import { highlight } from "./syntax";
 
 export function error(e: Error) {
 	return `${chalk.bold.red("ERROR")}: ${e.message}`;
@@ -15,52 +16,44 @@ export function fileHeader(filename: string) {
 export function sourceCode(source: string, error: ParseError) {
 	let lines = source.split("\n");
 	let { loc } = error.token;
-	let col = loc.offset;
-	for (const line of lines) {
-		if (col <= line.length + 1) {
-			break;
-		}
 
-		col -= line.length + 1;
-	}
-
-	let excerpt = [{ num: loc.line, text: lines[loc.line - 1] }];
+	let excerpt = [{ line: loc.line, text: lines[loc.line - 1] }];
 
 	if (loc.line - 1 > 0) {
 		excerpt.unshift({
-			num: loc.line - 1,
+			line: loc.line - 1,
 			text: lines[loc.line - 2],
 		});
 	}
 
 	if (loc.line < lines.length) {
 		excerpt.push({
-			num: loc.line + 1,
+			line: loc.line + 1,
 			text: lines[loc.line],
 		});
 	}
 
 	return excerpt
-		.map(({ num, text }) => {
-			let lineNumber = num.toString().padStart(4, " ");
-			let line = `${chalk.gray(
+		.map(({ line, text }) => {
+			let lineNumber = line.toString().padStart(4, " ");
+			let output = `${chalk.gray(
 				BOX_VERTICAL +
 					" " +
-					(num === loc.line ? chalk.red(lineNumber) : lineNumber) +
+					(line === loc.line ? chalk.red(lineNumber) : lineNumber) +
 					" " +
 					BOX_VERTICAL
-			)} ${text}`;
+			)} ${highlight(text)}`;
 
-			if (num === loc.line) {
-				line += "\n" + " ".repeat(9 + col) + chalk.red("^");
+			if (line === loc.line) {
+				output += "\n" + " ".repeat(9 + loc.col - 1) + chalk.red("^");
 				let tokenLength = error.token.value.replace(/\t/g, " ".repeat(4))
 					.length;
 				if (tokenLength > 1) {
-					line += chalk.red("~".repeat(tokenLength - 1));
+					output += chalk.red("~".repeat(tokenLength - 1));
 				}
 			}
 
-			return line;
+			return output;
 		})
 		.concat(hr())
 		.join("\n")
@@ -75,12 +68,12 @@ const BOX_CORNER_SE = "\u2518";
 const BOX_CORNER_SW = "\u2514";
 
 function hr() {
-	let w = Math.min(120, process.stdout.columns);
+	let w = process.stdout.columns;
 	return chalk.gray(BOX_HORIZONTAL.repeat(w));
 }
 
 function box(text: string, fmt?: chalk.Chalk) {
-	let w = Math.min(120, process.stdout.columns);
+	let w = process.stdout.columns;
 	let pw = Math.max(w - 2, 0);
 	let cw = Math.max(pw - 2, 0);
 

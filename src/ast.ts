@@ -1,8 +1,9 @@
 import { noun } from "./natural-language";
-import { Token } from "./tokens";
+import { Token, TokenType } from "./tokens";
 
 enum CamlErrorCode {
 	UNEXPECTED_TOKEN = "CAML_UNEXPECTED_TOKEN",
+	UNEXPECTED_EOF = "CAML_UNEXPECTED_EOF",
 	INAVLID_INDENT = "CAML_INVALID_INDENT",
 	UNKNOWN = "CAML_UNKNOWN",
 }
@@ -11,12 +12,22 @@ export class ParseError extends Error {
 	readonly token: Token;
 	readonly code: CamlErrorCode;
 
-	static unexpectedToken(token: Token) {
-		return new ParseError(
-			`Unexpected token: '${JSON.stringify(token.value)}'`,
-			token,
-			CamlErrorCode.UNEXPECTED_TOKEN
-		);
+	static unexpectedToken(token: Token, detail?: string) {
+		let message =
+			token.type === TokenType.EOF
+				? "Unexpected end of file"
+				: `Unexpected token: ${JSON.stringify(token.value)}`;
+
+		if (detail) {
+			message += "; " + detail;
+		}
+
+		let code =
+			token.type === TokenType.EOF
+				? CamlErrorCode.UNEXPECTED_EOF
+				: CamlErrorCode.UNEXPECTED_TOKEN;
+
+		return new ParseError(message, token, code);
 	}
 
 	static invalidIndentation(indent: Token, expected: number) {

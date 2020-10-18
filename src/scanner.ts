@@ -236,19 +236,19 @@ const scanValueText: ScanState = (scanner) => {
 };
 
 const DELIMITER_TABLE = new Map([
-	[COLON, scanDelimiter(TokenType.COLON, scanValueText)],
-	[EQUALS, scanDelimiter(TokenType.EQUALS, scanValueText)],
-	[QUESTION, scanDelimiter(TokenType.QUESTION, scanValueText)],
-	[SLASH, scanDelimiter(TokenType.SLASH, scanNewline)],
+	[COLON, scanDelimiter(TokenType.COLON)],
+	[EQUALS, scanDelimiter(TokenType.EQUALS)],
+	[QUESTION, scanDelimiter(TokenType.QUESTION)],
+	[SLASH, scanDelimiter(TokenType.SLASH)],
 ]);
 
-function scanDelimiter(type: TokenType, next: ScanState): ScanState {
+function scanDelimiter(type: TokenType): ScanState {
 	return (scanner) => {
 		scanner.advance(); // Consume the delimiter
 		scanner.emit(type);
 		scanner.skipWhitespace();
 
-		return next;
+		return scanValueText;
 	};
 }
 

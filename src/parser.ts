@@ -42,10 +42,20 @@ class Parser {
 		return this.tokens[this.offset - 1];
 	}
 
-	match(type: TokenType): Token {
+	match(type: TokenType, detail?: string): Token {
 		let next = this.peek();
 		if (next.type !== type) {
-			this.error(ParseError.unexpectedToken(next));
+			this.error(ParseError.unexpectedToken(next, detail));
+		}
+
+		return this.advance();
+	}
+
+	matchAny(types: Iterable<TokenType>, detail?: string): Token {
+		let next = this.peek();
+		let allowed = new Set(types);
+		if (!allowed.has(next.type)) {
+			this.error(ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -158,7 +168,14 @@ function parseEntry(parser: Parser): CamlEntry {
 		};
 	}
 
-	let parseValue = VALUE_TABLE.get(parser.advance().type)!;
+	let delimiter = parser.matchAny(
+		VALUE_TABLE.keys(),
+		`expected delimiter ${
+			key !== null ? "after key" : "before value"
+		} (":", "=", "?", or "/")`
+	);
+
+	let parseValue = VALUE_TABLE.get(delimiter.type)!;
 	let value = parseValue(parser);
 
 	return {
@@ -205,7 +222,7 @@ function toBooleanValue(token: Token) {
 }
 
 function parseBoolean(parser: Parser): CamlBoolean {
-	let token = parser.match(TokenType.TEXT);
+	let token = parser.match(TokenType.TEXT, 'expected boolean value after "?"');
 
 	let value = toBooleanValue(token)!;
 
@@ -240,7 +257,12 @@ function parseNumber(parser: Parser): CamlNumber {
 
 function parseNestedList(parser: Parser): CamlList {
 	if (!parser.isAtEnd()) {
-		parser.match(TokenType.NEWLINE);
+		try {
+			parser.match(TokenType.NEWLINE, 'expected line break after "/"');
+		} catch (e) {
+			if (!(e instanceof ParseError)) throw e;
+			parser.synchronize();
+		}
 	}
 
 	return parseList(parser);

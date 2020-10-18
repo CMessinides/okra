@@ -1,0 +1,46 @@
+{
+  "type": "document",
+  "ok": false,
+  "root": {
+    "type": "list",
+    "associative": true,
+    "entries": [
+      {
+        "type": "entry",
+        "key": {
+          "type": "key",
+          "value": "foo"
+        },
+        "value": {
+          "type": "list",
+          "associative": false,
+          "entries": [
+            {
+              "type": "entry",
+              "key": null,
+              "value": {
+                "type": "string",
+                "value": "item"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "errors": [
+    {
+      "code": "CAML_UNEXPECTED_TOKEN",
+      "message": "Unexpected token: \"bar\"; expected line break after \"/\"",
+      "token": {
+        "type": "TEXT",
+        "value": "bar",
+        "loc": {
+          "offset": 5,
+          "line": 1,
+          "col": 6
+        }
+      }
+    }
+  ]
+}

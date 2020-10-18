@@ -7,14 +7,7 @@ const EQUALS = 0x3d;
 const QUESTION = 0x3f;
 const SLASH = 0x2f;
 const HASH = 0x23;
-const SPACE = 0x20;
-const TAB = 0x09;
 const NEWLINE = 0x0a;
-
-const WHITESPACE = new Set([SPACE, TAB]);
-function isWhitespace(charCode: CharCode): boolean {
-	return WHITESPACE.has(charCode);
-}
 
 class Scanner {
 	readonly source: string;
@@ -116,11 +109,8 @@ class Scanner {
 	 * Ignore any spaces or tabs.
 	 */
 	skipWhitespace(): void {
-		while (isWhitespace(this.peek())) {
-			this.advance();
-		}
-
-		this.ignore();
+		let matched = this.matchRun(" \t");
+		if (matched) this.ignore();
 	}
 
 	/**

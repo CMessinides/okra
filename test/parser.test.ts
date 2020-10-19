@@ -1,13 +1,13 @@
 import path from "path";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { parse } from "../src/parser";
+import { parseDocument } from "../src/parser";
 import { collectCases } from "./helpers/cases";
 
 for (const testCase of collectCases(path.join(__dirname, "cases"))) {
 	testCase.define(test, async () => {
 		const [input, output] = await testCase.load("tokens.json", "ast.json");
-		const result = parse(JSON.parse(input));
+		const result = parseDocument(JSON.parse(input));
 
 		assert.fixture(JSON.stringify(result, null, 2), output);
 	});

@@ -81,7 +81,7 @@ class Parser {
 	}
 }
 
-export function parse(tokens: Token[]): CamlDocument {
+export function parseDocument(tokens: Token[]): CamlDocument {
 	let parser = new Parser(tokens);
 	let root = parseList(parser);
 

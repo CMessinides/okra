@@ -1,1 +1,1 @@
-require("../dist/cmd/caml");
+require("../dist/bin/caml");

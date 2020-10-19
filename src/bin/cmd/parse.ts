@@ -1,31 +1,15 @@
 import { readFile } from "fs/promises";
-import yargs from "yargs";
-import { parse } from "../parser";
-import { resolve } from "../resolver";
-import { scan } from "../scanner";
-import * as fmt from "./fmt";
+import type { Arguments } from "yargs";
+import { parseDocument } from "../../parser";
+import { resolve } from "../../resolver";
+import { scan } from "../../scanner";
+import * as fmt from "../lib/fmt";
 
-yargs
-	.scriptName("caml")
-	.command(
-		"$0 [files..]",
-		"Parse the given CAML files and print them as JSON",
-		(yargs) => {
-			yargs.positional("files", {
-				describe: "CAML files to read and parse",
-				normalize: true,
-			});
-		},
-		main
-	)
-	.help()
-	.version()
-	.parse();
+export type ParseArguments = Arguments<{ files: string[] }>;
 
-async function main({ files }: yargs.Arguments<{ files: string[] }>) {
+export async function parse({ files }: ParseArguments) {
 	if (!files) {
 		console.error(fmt.error(new Error(`No files provided`)));
-		yargs.showHelp();
 		process.exitCode = 1;
 		return;
 	}
@@ -52,7 +36,7 @@ async function main({ files }: yargs.Arguments<{ files: string[] }>) {
 		if (source === null) continue;
 
 		let tokens = scan(source);
-		let doc = parse(tokens);
+		let doc = parseDocument(tokens);
 		if (!doc.ok) {
 			for (const error of doc.errors) {
 				errorMsgs.push(fmt.parseError(error, source, tokens, file));

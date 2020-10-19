@@ -47,20 +47,23 @@ async function main({ files }: yargs.Arguments<{ files: string[] }>) {
 		)
 	);
 
-	for (const [file, data] of sources) {
-		if (data === null) continue;
+	let errorMsgs: string[] = [];
+	for (const [file, source] of sources) {
+		if (source === null) continue;
 
-		let doc = parse(scan(data));
+		let tokens = scan(source);
+		let doc = parse(tokens);
 		if (!doc.ok) {
-			console.error(fmt.fileHeader(file));
-
 			for (const error of doc.errors) {
-				console.error(fmt.error(error) + "\n");
-				console.error(fmt.sourceCode(data, error));
+				errorMsgs.push(fmt.parseError(error, source, tokens, file));
 			}
-			process.exitCode = 1;
 		} else {
 			console.log(JSON.stringify(resolve(doc), null, 2));
 		}
+	}
+
+	if (errorMsgs.length) {
+		process.exitCode = 1;
+		console.error(errorMsgs.join("\n\n"));
 	}
 }

@@ -1,95 +1,94 @@
 import * as path from "path";
 import chalk from "chalk";
 import { ParseError } from "../ast";
-import { highlight } from "./syntax";
+import { Token, TokenType } from "../tokens";
 
 export function error(e: Error) {
 	return `${chalk.bold.red("ERROR")}: ${e.message}`;
 }
 
-export function fileHeader(filename: string) {
-	let relativePath = path.relative(process.cwd(), filename);
-
-	return box(relativePath, chalk.bold.white);
-}
-
-export function sourceCode(source: string, error: ParseError) {
-	let lines = source.split("\n");
+/**
+ * Please forgive this awful bit of string munging.
+ */
+export function parseError(
+	error: ParseError,
+	source: string,
+	tokens: Token[],
+	filepath: string
+) {
 	let { loc } = error.token;
+	let lines = source.split("\n");
 
-	let excerpt = [{ line: loc.line, text: lines[loc.line - 1] }];
+	// Output dimensions
+	let errLen = error.token.value.replace(/\t/g, "    ").length;
+	let lineNumWidth = lines.length.toString().length;
 
-	if (loc.line - 1 > 0) {
-		excerpt.unshift({
-			line: loc.line - 1,
-			text: lines[loc.line - 2],
-		});
-	}
+	let lineNum = (line?: number) => {
+		let n = (line !== undefined ? line.toString() : "").padStart(
+			lineNumWidth,
+			" "
+		);
 
-	if (loc.line < lines.length) {
-		excerpt.push({
-			line: loc.line + 1,
-			text: lines[loc.line],
-		});
-	}
+		if (line === loc.line) {
+			n = chalk.red(n);
+		}
 
-	return excerpt
-		.map(({ line, text }) => {
-			let lineNumber = line.toString().padStart(4, " ");
-			let output = `${chalk.gray(
-				BOX_VERTICAL +
-					" " +
-					(line === loc.line ? chalk.red(lineNumber) : lineNumber) +
-					" " +
-					BOX_VERTICAL
-			)} ${highlight(text)}`;
+		return chalk.gray(`  ${n} ${BOX_VERTICAL}`);
+	};
 
-			if (line === loc.line) {
-				output += "\n" + " ".repeat(9 + loc.col - 1) + chalk.red("^");
-				let tokenLength = error.token.value.replace(/\t/g, " ".repeat(4))
-					.length;
-				if (tokenLength > 1) {
-					output += chalk.red("~".repeat(tokenLength - 1));
-				}
-			}
-
-			return output;
-		})
-		.concat(hr())
-		.join("\n")
-		.replace(/\t/g, " ".repeat(4));
-}
-
-const BOX_HORIZONTAL = "\u2500";
-const BOX_VERTICAL = "\u2502";
-const BOX_CORNER_NW = "\u250C";
-const BOX_CORNER_NE = "\u2510";
-const BOX_CORNER_SE = "\u2518";
-const BOX_CORNER_SW = "\u2514";
-
-function hr() {
-	let w = process.stdout.columns;
-	return chalk.gray(BOX_HORIZONTAL.repeat(w));
-}
-
-function box(text: string, fmt?: chalk.Chalk) {
-	let w = process.stdout.columns;
-	let pw = Math.max(w - 2, 0);
-	let cw = Math.max(pw - 2, 0);
-
-	if (text.length > cw) {
-		text = text.substr(0, cw - 3) + "...";
-	} else {
-		text = text.padEnd(cw, " ");
-	}
-
-	if (fmt) {
-		text = fmt(text);
-	}
+	let excerpt = lines
+		.map((line, i) => ({ num: i + 1, line }))
+		.filter(
+			({ num }) =>
+				num === loc.line || num === loc.line - 1 || num === loc.line + 1
+		);
 
 	return [
-		chalk.gray(BOX_CORNER_NW + BOX_HORIZONTAL.repeat(pw) + BOX_CORNER_NE),
-		chalk.gray(BOX_VERTICAL) + " " + text + " " + chalk.gray(BOX_VERTICAL),
-		chalk.gray(BOX_CORNER_SW + BOX_HORIZONTAL.repeat(pw) + BOX_CORNER_SE),
+		`${chalk.bold.cyan(path.relative(process.cwd(), filepath))}:${chalk.yellow(
+			loc.line + ":" + loc.col
+		)} - ${chalk.red("error")} - ${error.message}`,
+		...excerpt.map(({ num, line }) => {
+			let i = 0;
+			let highlightedLine = "";
+			for (const token of tokens.filter(
+				(token) => token.type !== TokenType.NEWLINE && token.loc.line === num
+			)) {
+				let j = token.loc.col - 1;
+				if (j > i) {
+					let diff = line.slice(i, j);
+					highlightedLine += diff;
+				}
+
+				let sub = token.value;
+				if (token.loc.offset === error.token.loc.offset) {
+					sub = chalk.red.italic(sub);
+				} else if (token.type === TokenType.COMMENT) {
+					sub = chalk.gray(sub);
+				} else if (token.type === TokenType.TEXT) {
+					sub = chalk.blue(sub);
+				}
+
+				highlightedLine += sub;
+				i = j + token.value.length;
+			}
+
+			let out = `${lineNum(num)} ${highlightedLine.replace(/\t/g, "    ")}`;
+
+			if (num === loc.line) {
+				let underline = "";
+				for (let i = 0; i < loc.col - 1; i++) {
+					const char = line[i];
+					underline += char === "\t" ? char : " ";
+				}
+
+				underline += "^".repeat(Math.max(1, errLen));
+
+				out += `\n${lineNum()} ${chalk.red(underline.replace(/\t/g, "    "))}`;
+			}
+
+			return out;
+		}),
 	].join("\n");
 }
+
+const BOX_VERTICAL = "\u2502";

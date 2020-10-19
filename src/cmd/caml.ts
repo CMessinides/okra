@@ -64,6 +64,8 @@ async function main({ files }: yargs.Arguments<{ files: string[] }>) {
 
 	if (errorMsgs.length) {
 		process.exitCode = 1;
-		console.error(errorMsgs.join("\n\n"));
+		for (const errorMsg of errorMsgs) {
+			console.error(errorMsg + "\n");
+		}
 	}
 }

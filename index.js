@@ -1,9 +1,10 @@
 const { readFileSync } = require("fs");
 const { scan } = require("./dist/scanner");
+const { prettyPrint } = require("./dist/pretty-printer");
 const { parse } = require("./dist/parser");
 const { resolve } = require("./dist/resolver");
 
-const commands = new Set(["scan", "parse", "resolve"]);
+const commands = new Set(["scan", "print", "parse", "resolve"]);
 if (!commands.has(process.argv[2])) {
 	if (process.argv[2] !== undefined) {
 		console.error(`ERROR: Unrecognized command: ${process.argv[2]}.`);
@@ -26,18 +27,23 @@ if (process.argv[3] === undefined) {
 }
 
 let file = process.argv[3];
-let data;
+let source;
 try {
-	data = readFileSync(file, "utf-8");
+	source = readFileSync(file, "utf-8");
 } catch (e) {
 	console.error(`ERROR: Could not read input file ${file}:`);
 	console.error(e.message);
 	process.exit(1);
 }
 
-let tokens = scan(data);
+let tokens = scan(source);
 if (command === "scan") {
 	console.log(JSON.stringify(tokens, null, 2));
+	process.exit(0);
+}
+
+if (command === "print") {
+	console.log(prettyPrint(source, tokens));
 	process.exit(0);
 }
 

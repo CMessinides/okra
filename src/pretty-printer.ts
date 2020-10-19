@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { ParseError } from "./ast";
+import { SyntaxError } from "./ast";
 import { Token, TokenType } from "./tokens";
 
 class PrettyPrinter {
@@ -68,7 +68,7 @@ class LinePrinter {
 	readonly tokens: Token[];
 	protected readonly parent: PrettyPrinter;
 	protected mode = TextMode.KEY;
-	protected errors: ParseError[] = [];
+	protected errors: SyntaxError[] = [];
 
 	constructor(
 		line: number,
@@ -82,7 +82,7 @@ class LinePrinter {
 		this.parent = parent;
 	}
 
-	withErrors(...errors: ParseError[]) {
+	withErrors(...errors: SyntaxError[]) {
 		this.errors.push(...errors);
 		return this;
 	}
@@ -187,7 +187,7 @@ export function prettyPrint(source: string, tokens: Token[]) {
 }
 
 export function prettyPrintError(
-	error: ParseError,
+	error: SyntaxError,
 	source: string,
 	tokens: Token[]
 ) {

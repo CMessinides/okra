@@ -8,14 +8,14 @@ import {
 	CamlString,
 	CamlType,
 	CamlValue,
-	ParseError,
+	SyntaxError,
 } from "./ast";
 import { Token, TokenType } from "./tokens";
 
 class Parser {
 	readonly tokens: Token[];
 	depth = -1;
-	readonly errors: ParseError[] = [];
+	readonly errors: SyntaxError[] = [];
 	protected offset = 0;
 
 	constructor(tokens: Token[]) {
@@ -45,7 +45,7 @@ class Parser {
 	match(type: TokenType, detail?: string): Token {
 		let next = this.peek();
 		if (next.type !== type) {
-			this.error(ParseError.unexpectedToken(next, detail));
+			this.error(SyntaxError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -55,17 +55,17 @@ class Parser {
 		let next = this.peek();
 		let allowed = new Set(types);
 		if (!allowed.has(next.type)) {
-			this.error(ParseError.unexpectedToken(next, detail));
+			this.error(SyntaxError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
 	}
 
 	error(message: string, token?: Token): never;
-	error(error: ParseError): never;
-	error(reason: ParseError | string, token: Token = this.previous()): never {
+	error(error: SyntaxError): never;
+	error(reason: SyntaxError | string, token: Token = this.previous()): never {
 		let error =
-			typeof reason === "string" ? new ParseError(reason, token) : reason;
+			typeof reason === "string" ? new SyntaxError(reason, token) : reason;
 		this.errors.push(error);
 		throw error;
 	}
@@ -127,7 +127,7 @@ function parseList(parser: Parser): CamlList {
 			}
 
 			if (indent.value.length > parser.depth) {
-				parser.error(ParseError.invalidIndentation(indent, parser.depth));
+				parser.error(SyntaxError.invalidIndentation(indent, parser.depth));
 			}
 
 			let entry = parseEntry(parser);
@@ -141,7 +141,7 @@ function parseList(parser: Parser): CamlList {
 
 			entries.push(entry);
 		} catch (e) {
-			if (e instanceof ParseError) {
+			if (e instanceof SyntaxError) {
 				parser.synchronize();
 				continue;
 			}
@@ -265,7 +265,7 @@ function parseNestedList(parser: Parser): CamlList {
 		try {
 			parser.match(TokenType.NEWLINE, 'expected line break after "/"');
 		} catch (e) {
-			if (!(e instanceof ParseError)) throw e;
+			if (!(e instanceof SyntaxError)) throw e;
 			parser.synchronize();
 		}
 	}

@@ -1,6 +1,6 @@
 import * as path from "path";
 import chalk from "chalk";
-import { ParseError } from "../ast";
+import { SyntaxError } from "../ast";
 import { Token } from "../tokens";
 import { prettyPrintError } from "../pretty-printer";
 
@@ -9,7 +9,7 @@ export function error(e: Error) {
 }
 
 export function parseError(
-	error: ParseError,
+	error: SyntaxError,
 	source: string,
 	tokens: Token[],
 	filepath: string

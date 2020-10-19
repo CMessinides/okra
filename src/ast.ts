@@ -8,31 +8,40 @@ enum CamlErrorCode {
 	UNKNOWN = "CAML_UNKNOWN",
 }
 
-export class ParseError extends Error {
+export class SyntaxError extends Error {
 	readonly token: Token;
 	readonly code: CamlErrorCode;
 
 	static unexpectedToken(token: Token, detail?: string) {
-		let message =
-			token.type === TokenType.EOF
-				? "Unexpected end of file"
-				: `Unexpected token: ${JSON.stringify(token.value)}`;
+		let message: string;
+		let code = CamlErrorCode.UNEXPECTED_TOKEN;
+
+		switch (token.type) {
+			case TokenType.EOF:
+				message = "Unexpected end of file";
+				code = CamlErrorCode.UNEXPECTED_EOF;
+				break;
+			case TokenType.NEWLINE:
+				message = "Unexpected line break";
+				break;
+			case TokenType.INDENT:
+				message = "Unexpected indentation";
+				break;
+			default:
+				message = `Unexpected token: "${token.value}"`;
+				break;
+		}
 
 		if (detail) {
 			message += "; " + detail;
 		}
 
-		let code =
-			token.type === TokenType.EOF
-				? CamlErrorCode.UNEXPECTED_EOF
-				: CamlErrorCode.UNEXPECTED_TOKEN;
-
-		return new ParseError(message, token, code);
+		return new SyntaxError(message, token, code);
 	}
 
 	static invalidIndentation(indent: Token, expected: number) {
 		let actual = indent.value.length;
-		return new ParseError(
+		return new SyntaxError(
 			`Invalid indentation: expected ${noun("tab").count(
 				expected
 			)}, but got ${actual}`,
@@ -70,7 +79,7 @@ export interface CamlDocument {
 	type: CamlType.DOCUMENT;
 	ok: boolean;
 	root: CamlList;
-	errors: ParseError[];
+	errors: SyntaxError[];
 }
 
 export interface CamlList {

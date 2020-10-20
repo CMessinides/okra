@@ -1,6 +1,7 @@
 const { readFileSync } = require("fs");
 const { scan } = require("./dist/scanner");
-const { prettyPrint } = require("./dist/pretty-printer");
+const { Printer } = require("./dist/printer");
+const { createPrettyRenderer } = require("./dist/bin/lib/pretty-print");
 const { parse } = require("./dist/parser");
 const { resolve } = require("./dist/resolver");
 
@@ -43,7 +44,11 @@ if (command === "scan") {
 }
 
 if (command === "print") {
-	console.log(prettyPrint(source, tokens));
+	let printer = new Printer(source, tokens).withRenderer(
+		createPrettyRenderer()
+	);
+
+	console.log(printer.print());
 	process.exit(0);
 }
 

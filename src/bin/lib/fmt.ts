@@ -2,7 +2,7 @@ import * as path from "path";
 import chalk from "chalk";
 import { SyntaxError } from "../../ast";
 import { Token } from "../../tokens";
-import { prettyPrintError } from "../../pretty-printer";
+import { prettyPrintError } from "../../printer";
 
 export function error(e: Error) {
 	return `${chalk.bold.red("ERROR")}: ${e.message}`;

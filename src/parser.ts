@@ -8,14 +8,15 @@ import {
 	CamlString,
 	CamlType,
 	CamlValue,
-	SyntaxError,
+	CamlError,
+	CamlErrorCode,
 } from "./ast";
 import { Token, TokenType } from "./tokens";
 
 class Parser {
 	readonly tokens: Token[];
 	depth = -1;
-	readonly errors: SyntaxError[] = [];
+	readonly errors: CamlError[] = [];
 	protected offset = 0;
 
 	constructor(tokens: Token[]) {
@@ -45,7 +46,7 @@ class Parser {
 	match(type: TokenType, detail?: string): Token {
 		let next = this.peek();
 		if (next.type !== type) {
-			this.error(SyntaxError.unexpectedToken(next, detail));
+			this.error(CamlError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -55,17 +56,17 @@ class Parser {
 		let next = this.peek();
 		let allowed = new Set(types);
 		if (!allowed.has(next.type)) {
-			this.error(SyntaxError.unexpectedToken(next, detail));
+			this.error(CamlError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
 	}
 
 	error(message: string, token?: Token): never;
-	error(error: SyntaxError): never;
-	error(reason: SyntaxError | string, token: Token = this.previous()): never {
+	error(error: CamlError): never;
+	error(reason: CamlError | string, token: Token = this.previous()): never {
 		let error =
-			typeof reason === "string" ? new SyntaxError(reason, token) : reason;
+			typeof reason === "string" ? new CamlError(reason, token) : reason;
 		this.errors.push(error);
 		throw error;
 	}
@@ -127,7 +128,7 @@ function parseList(parser: Parser): CamlList {
 			}
 
 			if (indent.value.length > parser.depth) {
-				parser.error(SyntaxError.invalidIndentation(indent, parser.depth));
+				parser.error(CamlError.invalidIndentation(indent, parser.depth));
 			}
 
 			let entry = parseEntry(parser);
@@ -141,7 +142,7 @@ function parseList(parser: Parser): CamlList {
 
 			entries.push(entry);
 		} catch (e) {
-			if (e instanceof SyntaxError) {
+			if (e instanceof CamlError) {
 				parser.synchronize();
 				continue;
 			}
@@ -229,7 +230,16 @@ function toBooleanValue(token: Token) {
 function parseBoolean(parser: Parser): CamlBoolean {
 	let token = parser.match(TokenType.TEXT, 'expected boolean value after "?"');
 
-	let value = toBooleanValue(token)!;
+	let value = toBooleanValue(token);
+	if (value === null) {
+		parser.error(
+			new CamlError(
+				`"${token.value}" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)`,
+				token,
+				CamlErrorCode.INVALID_BOOLEAN
+			)
+		);
+	}
 
 	if (!parser.isAtEnd()) {
 		parser.match(TokenType.NEWLINE);
@@ -265,7 +275,7 @@ function parseNestedList(parser: Parser): CamlList {
 		try {
 			parser.match(TokenType.NEWLINE, 'expected line break after "/"');
 		} catch (e) {
-			if (!(e instanceof SyntaxError)) throw e;
+			if (!(e instanceof CamlError)) throw e;
 			parser.synchronize();
 		}
 	}

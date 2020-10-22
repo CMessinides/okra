@@ -1,14 +1,15 @@
 import { noun } from "./natural-language";
 import { Token, TokenType } from "./tokens";
 
-enum CamlErrorCode {
+export enum CamlErrorCode {
 	UNEXPECTED_TOKEN = "CAML_UNEXPECTED_TOKEN",
 	UNEXPECTED_EOF = "CAML_UNEXPECTED_EOF",
 	INAVLID_INDENT = "CAML_INVALID_INDENT",
+	INVALID_BOOLEAN = "CAML_INVALID_BOOLEAN",
 	UNKNOWN = "CAML_UNKNOWN",
 }
 
-export class SyntaxError extends Error {
+export class CamlError extends Error {
 	readonly token: Token;
 	readonly code: CamlErrorCode;
 
@@ -36,12 +37,12 @@ export class SyntaxError extends Error {
 			message += "; " + detail;
 		}
 
-		return new SyntaxError(message, token, code);
+		return new CamlError(message, token, code);
 	}
 
 	static invalidIndentation(indent: Token, expected: number) {
 		let actual = indent.value.length;
-		return new SyntaxError(
+		return new CamlError(
 			`Invalid indentation: expected ${noun("tab").count(
 				expected
 			)}, but got ${actual}`,
@@ -79,7 +80,7 @@ export interface CamlDocument {
 	type: CamlType.DOCUMENT;
 	ok: boolean;
 	root: CamlList;
-	errors: SyntaxError[];
+	errors: CamlError[];
 }
 
 export interface CamlList {

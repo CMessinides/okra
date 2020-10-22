@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import type { Renderer } from "../../printer";
-import type { SyntaxError } from "../../ast";
+import type { CamlError } from "../../ast";
 import type { Token } from "../../tokens";
 
 const TAB_WIDTH = 4;
@@ -47,7 +47,7 @@ export function createPrettyRenderer(): Renderer {
 }
 
 export function createErrorRenderer(
-	error: SyntaxError,
+	error: CamlError,
 	lineCount: number
 ): Renderer {
 	const LINE_NUMBER_COLS = lineCount.toString().length;

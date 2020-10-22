@@ -1,0 +1,50 @@
+{
+  "type": "document",
+  "ok": false,
+  "root": {
+    "type": "list",
+    "associative": true,
+    "entries": []
+  },
+  "errors": [
+    {
+      "code": "CAML_INVALID_BOOLEAN",
+      "message": "\"1\" is not a valid boolean value; must be one of \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\" (case-insensitive)",
+      "token": {
+        "type": "TEXT",
+        "value": "1",
+        "loc": {
+          "offset": 2,
+          "line": 1,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_BOOLEAN",
+      "message": "\"not\" is not a valid boolean value; must be one of \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\" (case-insensitive)",
+      "token": {
+        "type": "TEXT",
+        "value": "not",
+        "loc": {
+          "offset": 6,
+          "line": 2,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_BOOLEAN",
+      "message": "\"tru\" is not a valid boolean value; must be one of \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\" (case-insensitive)",
+      "token": {
+        "type": "TEXT",
+        "value": "tru",
+        "loc": {
+          "offset": 12,
+          "line": 3,
+          "col": 3
+        }
+      }
+    }
+  ]
+}

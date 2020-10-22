@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import type { Renderer } from "../../printer";
 import type { SyntaxError } from "../../ast";
-import { Token, TokenType } from "../../tokens";
+import type { Token } from "../../tokens";
 
 const TAB_WIDTH = 4;
 
@@ -107,7 +107,7 @@ export function createErrorRenderer(
 			prefix += line.toString().padStart(LINE_NUMBER_COLS);
 			return chalk.gray((isError ? chalk.red(prefix) : prefix) + " │ ");
 		},
-		afterLine(line, text, tokens) {
+		afterLine(line, text) {
 			let isError = line === error.token.loc.line;
 			if (!isError) return "";
 
@@ -127,11 +127,8 @@ export function createErrorRenderer(
 
 			underline += chalk.red("^".repeat(Math.max(1, errorLength)));
 
-			if (tokens[tokens.length - 1]?.type !== TokenType.NEWLINE) {
-				underline = "\n" + underline;
-			}
-
-			return underline + "\n";
+			let isLast = line === lineCount;
+			return isLast ? "\n" + underline : underline + "\n";
 		},
 		shouldRenderLine(line) {
 			return line > error.token.loc.line - 2 && line < error.token.loc.line + 2;

@@ -1,0 +1,102 @@
+{
+  "type": "document",
+  "ok": false,
+  "root": {
+    "type": "list",
+    "associative": true,
+    "entries": []
+  },
+  "errors": [
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"a word\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "a word",
+        "loc": {
+          "offset": 2,
+          "line": 1,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"--3\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "--3",
+        "loc": {
+          "offset": 11,
+          "line": 2,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"+\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "+",
+        "loc": {
+          "offset": 17,
+          "line": 3,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"3.0.3\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "3.0.3",
+        "loc": {
+          "offset": 21,
+          "line": 4,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"0xFF\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "0xFF",
+        "loc": {
+          "offset": 29,
+          "line": 5,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"2.1e\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "2.1e",
+        "loc": {
+          "offset": 36,
+          "line": 6,
+          "col": 3
+        }
+      }
+    },
+    {
+      "code": "CAML_INVALID_NUMBER",
+      "message": "\"2.1e2.1.1\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
+      "token": {
+        "type": "TEXT",
+        "value": "2.1e2.1.1",
+        "loc": {
+          "offset": 43,
+          "line": 7,
+          "col": 3
+        }
+      }
+    }
+  ]
+}

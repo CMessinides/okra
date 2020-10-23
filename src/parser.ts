@@ -251,14 +251,22 @@ function parseBoolean(parser: Parser): CamlBoolean {
 	};
 }
 
+const NUMBER_PATTERN = /^[+-]?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/;
+
 function parseNumber(parser: Parser): CamlNumber {
 	let token = parser.match(TokenType.TEXT);
 
-	let value = parseFloat(token.value);
-
-	if (Number.isNaN(value)) {
-		// TODO: Parser error
+	if (!token.value.match(NUMBER_PATTERN)) {
+		parser.error(
+			new CamlError(
+				`"${token.value}" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")`,
+				token,
+				CamlErrorCode.INVALID_NUMBER
+			)
+		);
 	}
+
+	let value = parseFloat(token.value);
 
 	if (!parser.isAtEnd()) {
 		parser.match(TokenType.NEWLINE);

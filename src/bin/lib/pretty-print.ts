@@ -69,9 +69,11 @@ export function createErrorRenderer(
 
 		for (let char of input) {
 			if (char === "\t") {
-				output += chalk.dim("→".padEnd(TAB_WIDTH));
+				output += chalk.supportsColor
+					? chalk.dim("→".padEnd(TAB_WIDTH))
+					: " ".repeat(TAB_WIDTH);
 			} else if (char === " " || (char !== "\n" && char.match(/\s/))) {
-				output += chalk.dim("·");
+				output += chalk.supportsColor ? chalk.dim("·") : char;
 			} else {
 				output += char;
 			}

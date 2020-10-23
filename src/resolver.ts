@@ -30,7 +30,7 @@ function resolveValue(value: CamlValue): Value {
 	return value.value;
 }
 
-type Value = number | boolean | string | List;
-type List = AssociativeList | NonAssociativeList;
-type AssociativeList = { [key: string]: Value };
-type NonAssociativeList = Value[];
+export type Value = number | boolean | string | List;
+export type List = AssociativeList | NonAssociativeList;
+export type AssociativeList = { [key: string]: Value };
+export type NonAssociativeList = Value[];

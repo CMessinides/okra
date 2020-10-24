@@ -46,26 +46,31 @@ interface FileConfigOptions {
 	optional?: boolean;
 }
 
-type CaseContext<F extends FileConfig> = {
+type CaseFiles<F extends FileConfig> = {
 	[k in keyof F]: F[k] extends [string, { optional: true }]
 		? string | null
 		: string;
 };
-type CaseCallback<F extends FileConfig> = uvu.Callback<CaseContext<F>>;
+type CaseCallback<F extends FileConfig> = (
+	ctx: CaseFiles<F>,
+	info: CaseDefinition
+) => Promise<void> | void;
 type CaseTest<F extends FileConfig> = (callback: CaseCallback<F>) => void;
 
 export function allCases<F extends FileConfig>(
 	test: uvu.Test<any>,
 	config: F
 ): CaseTest<F>[] {
-	return CASES.map(({ name, filepath, flag }) => {
+	return CASES.map((info) => {
 		return function (callback) {
+			let { flag, name } = info;
+
 			if (flag === CaseFlag.SKIP) {
 				test.skip(name);
 			} else if (flag === CaseFlag.ONLY) {
-				test.only(name, preload(callback, filepath, config));
+				test.only(name, preload(callback, info, config));
 			} else {
-				test(name, preload(callback, filepath, config));
+				test(name, preload(callback, info, config));
 			}
 		};
 	});
@@ -73,10 +78,10 @@ export function allCases<F extends FileConfig>(
 
 function preload<F extends FileConfig>(
 	callback: CaseCallback<F>,
-	dir: string,
+	info: CaseDefinition,
 	config: F
 ): uvu.Callback<any> {
-	let caseFiles = normalizeConfig(dir, config);
+	let caseFiles = normalizeConfig(info.filepath, config);
 
 	return async function () {
 		let ctx: Record<string, string | null> = {};
@@ -87,7 +92,7 @@ function preload<F extends FileConfig>(
 			ctx[key] = contents;
 		}
 
-		return callback(ctx as CaseContext<F>);
+		return callback(ctx as CaseFiles<F>, info);
 	};
 }
 

@@ -1,0 +1,17 @@
+test/cases/error-bad-boolean-value/source.caml:1:3 - error - "1" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)
+> 1 │ ? 1
+    │   ^
+  2 │ ? not
+
+
+test/cases/error-bad-boolean-value/source.caml:2:3 - error - "not" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)
+  1 │ ? 1
+> 2 │ ? not
+    │   ^^^
+  3 │ ? tru
+
+test/cases/error-bad-boolean-value/source.caml:3:3 - error - "tru" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)
+  2 │ ? not
+> 3 │ ? tru
+    │   ^^^
+

@@ -1,0 +1,5 @@
+test/cases/error-invalid-indentation-at-root/source.caml:1:1 - error - Invalid indentation: expected 0 tabs, but got 1
+> 1 │     invalid? yes
+    │ ^^^^
+  2 │ still parsed? yes
+

@@ -11,7 +11,8 @@
 		"build:watch": "tsc -w",
 		"test": "uvu -r ts-node/register -i helpers test",
 		"test:watch": "watchlist src test -- yarn -s test",
-		"coverage": "nyc yarn test"
+		"coverage": "nyc yarn test",
+		"coverage:watch": "watchlist src test -- yarn -s nyc -r text yarn test"
 	},
 	"dependencies": {
 		"chalk": "^4.1.0",

@@ -1,77 +1,140 @@
-import { test as uvuTest, Callback } from "uvu";
-import fs from "fs";
+import { readdirSync } from "fs";
+import { readFile } from "fs/promises";
 import path from "path";
+import { uvu } from "uvu";
 import { sentenceCase } from "sentence-case";
 
-export function collectCases(dir: string) {
-	return fs
-		.readdirSync(dir, { withFileTypes: true })
-		.filter((entry) => entry.isDirectory())
-		.map((entry) => {
-			const { name } = entry;
-			return TestCase.from(name, path.join(dir, name));
-		});
+enum CaseFlag {
+	SKIP,
+	ONLY,
+	NONE,
 }
 
-class TestCase {
-	readonly name: string;
-	readonly dir: string;
-	readonly flag?: string;
+interface CaseDefinition {
+	name: string;
+	filepath: string;
+	flag: CaseFlag;
+}
 
-	static from(name: string, dir: string) {
-		let flag: string | undefined;
-		const hasFlag = name.startsWith("skip.") || name.startsWith("only.");
-		if (hasFlag) {
-			const [flagValue, ...rest] = name.split(".");
-			flag = flagValue;
-			name = rest.join(".");
+const DIR = "test/cases";
+const CASES: CaseDefinition[] = readdirSync(DIR, { withFileTypes: true })
+	.filter((entry) => entry.isDirectory())
+	.map((entry) => {
+		let { name } = entry;
+		let filepath = path.join(DIR, name);
+
+		let flag = CaseFlag.NONE;
+		if (name.startsWith("skip.")) {
+			flag = CaseFlag.SKIP;
+			name = name.slice(5);
+		} else if (name.startsWith("only.")) {
+			flag = CaseFlag.ONLY;
+			name = name.slice(5);
 		}
 
 		name = sentenceCase(name);
 
-		return new TestCase(name, dir, flag);
-	}
+		return {
+			name,
+			filepath,
+			flag,
+		};
+	});
 
-	constructor(name: string, dir: string, flag?: string) {
-		this.name = name;
-		this.dir = dir;
-		this.flag = flag;
-	}
+type FileConfig = Record<string, string | [string, FileConfigOptions]>;
+interface FileConfigOptions {
+	optional?: boolean;
+}
 
-	define(test: typeof uvuTest, fn: Callback<Record<string, any>>) {
-		if (this.flag === "only") {
-			test.only(this.name, fn);
-		} else if (this.flag === "skip") {
-			test.skip(this.name, fn);
-		} else {
-			test(this.name, fn);
-		}
-	}
+type CaseContext<F extends FileConfig> = {
+	[k in keyof F]: F[k] extends [string, { optional: true }]
+		? string | null
+		: string;
+};
+type CaseCallback<F extends FileConfig> = uvu.Callback<CaseContext<F>>;
+type CaseTest<F extends FileConfig> = (callback: CaseCallback<F>) => void;
 
-	load(input: string, output: string): Promise<[string, string]> {
-		const inputFile = path.join(this.dir, input);
-		const outputFile = path.join(this.dir, output);
-
-		return Promise.all(
-			[inputFile, outputFile].map((file) => fs.promises.readFile(file, "utf-8"))
-		).catch((error) => {
-			if (fileDoesNotExist(error)) {
-				throw new MissingCaseFileError(error.path);
+export function allCases<F extends FileConfig>(
+	test: uvu.Test<any>,
+	config: F
+): CaseTest<F>[] {
+	return CASES.map(({ name, filepath, flag }) => {
+		return function (callback) {
+			if (flag === CaseFlag.SKIP) {
+				test.skip(name);
+			} else if (flag === CaseFlag.ONLY) {
+				test.only(name, preload(callback, filepath, config));
 			} else {
-				throw error;
+				test(name, preload(callback, filepath, config));
 			}
-		}) as Promise<[string, string]>;
+		};
+	});
+}
+
+function preload<F extends FileConfig>(
+	callback: CaseCallback<F>,
+	dir: string,
+	config: F
+): uvu.Callback<any> {
+	let caseFiles = normalizeConfig(dir, config);
+
+	return async function () {
+		let ctx: Record<string, string | null> = {};
+
+		for (const { key, contents } of await Promise.all(
+			caseFiles.map(readCaseFile)
+		)) {
+			ctx[key] = contents;
+		}
+
+		return callback(ctx as CaseContext<F>);
+	};
+}
+
+async function readCaseFile({ key, filepath, optional }: CaseFile) {
+	try {
+		return {
+			key,
+			contents: await readFile(filepath, "utf-8"),
+		};
+	} catch (error) {
+		if (!fileDoesNotExist(error)) {
+			throw error;
+		}
+
+		if (!optional) {
+			throw new MissingCaseFileError(filepath);
+		}
+
+		return { key, contents: null };
 	}
 }
 
+interface CaseFile {
+	key: string;
+	filepath: string;
+	optional: boolean;
+}
+
+function normalizeConfig(dir: string, config: FileConfig): CaseFile[] {
+	return Object.entries(config).map(([key, value]) => {
+		let name = Array.isArray(value) ? value[0] : value;
+		let filepath = path.join(dir, name);
+		let options = Array.isArray(value) ? value[1] : {};
+
+		return {
+			key,
+			filepath,
+			optional: options.optional ?? false,
+		};
+	});
+}
+
 class MissingCaseFileError extends Error {
-	constructor(filePath: string) {
-		let name = path.basename(filePath);
+	constructor(filepath: string) {
+		let name = path.basename(filepath);
 		super(
-			`Test case is missing file: ${name}. Be sure that ${path.relative(
-				process.cwd(),
-				filePath
-			)} exists.`
+			`Test case is missing file: ${name}. Be sure that ${filepath} exists.`
 		);
 	}
 }

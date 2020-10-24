@@ -45,6 +45,13 @@ function createDefaultRenderer(): Renderer {
 	};
 }
 
+export function createRenderer(config: Partial<Renderer>): Renderer {
+	return {
+		...createDefaultRenderer(),
+		...config,
+	};
+}
+
 export class Printer {
 	readonly lines: string[];
 	readonly tokens: Map<number, Token[]>;

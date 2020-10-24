@@ -1,6 +1,6 @@
 import path from "path";
 import chalk from "chalk";
-import { readFile } from "fs/promises";
+import fs from "fs";
 import type { Arguments } from "yargs";
 import { parseDocument } from "../../parser";
 import { Printer } from "../../printer";
@@ -8,7 +8,6 @@ import { resolve } from "../../resolver";
 import { scan } from "../../scanner";
 import * as fmt from "../lib/fmt";
 import { createErrorRenderer } from "../lib/pretty-print";
-
 export type ParseArguments = Arguments<{ files: string[] }>;
 
 export async function parse({ files }: ParseArguments) {
@@ -22,7 +21,7 @@ export async function parse({ files }: ParseArguments) {
 		await Promise.all(
 			files.map(async (file) => {
 				try {
-					let data = await readFile(file, "utf-8");
+					let data = await fs.promises.readFile(file, "utf-8");
 					return [file, data] as [string, string];
 				} catch (e) {
 					console.error(

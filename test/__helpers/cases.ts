@@ -1,5 +1,4 @@
-import { readdirSync } from "fs";
-import { readFile } from "fs/promises";
+import fs from "fs";
 import path from "path";
 import { uvu } from "uvu";
 import { sentenceCase } from "sentence-case";
@@ -17,7 +16,8 @@ interface CaseDefinition {
 }
 
 const DIR = "test/__cases";
-const CASES: CaseDefinition[] = readdirSync(DIR, { withFileTypes: true })
+const CASES: CaseDefinition[] = fs
+	.readdirSync(DIR, { withFileTypes: true })
 	.filter((entry) => entry.isDirectory())
 	.map((entry) => {
 		let { name } = entry;
@@ -100,7 +100,7 @@ async function readCaseFile({ key, filepath, optional }: CaseFile) {
 	try {
 		return {
 			key,
-			contents: await readFile(filepath, "utf-8"),
+			contents: await fs.promises.readFile(filepath, "utf-8"),
 		};
 	} catch (error) {
 		if (!fileDoesNotExist(error)) {

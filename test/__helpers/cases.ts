@@ -16,7 +16,7 @@ interface CaseDefinition {
 	flag: CaseFlag;
 }
 
-const DIR = "test/cases";
+const DIR = "test/__cases";
 const CASES: CaseDefinition[] = readdirSync(DIR, { withFileTypes: true })
 	.filter((entry) => entry.isDirectory())
 	.map((entry) => {

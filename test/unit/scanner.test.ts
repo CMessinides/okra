@@ -1,7 +1,7 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { scan } from "../src/scanner";
-import { allCases } from "./helpers/cases";
+import { scan } from "../../src/scanner";
+import { allCases } from "../__helpers/cases";
 
 let tests = allCases(test, { source: "source.caml", tokens: "tokens.json" });
 for (let t of tests) {

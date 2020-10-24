@@ -1,4 +1,0 @@
-test/cases/error-unexpected-eof-after-delimiter/source.caml:1:5 - error - Unexpected end of file; expected boolean value after "?"
-> 1 │ foo?
-    │     ^
-

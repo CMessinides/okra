@@ -1,7 +1,7 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { resolve } from "../src/resolver";
-import { allCases } from "./helpers/cases";
+import { resolve } from "../../src/resolver";
+import { allCases } from "../__helpers/cases";
 
 let tests = allCases(test, { document: "ast.json", output: "output.json" });
 for (let t of tests) {

@@ -4,7 +4,7 @@ import type { Readable } from "stream";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
 import type { CamlDocument } from "../../../src/ast";
-import { allCases } from "../../helpers/cases";
+import { allCases } from "../../__helpers/cases";
 
 async function consume(stream: Readable) {
 	let data = "";
@@ -26,10 +26,11 @@ for (let t of tests) {
 		let { ok } = JSON.parse(document) as CamlDocument;
 
 		let cmd = fork(
-			"bin/caml.js",
+			"src/bin/caml.ts",
 			["parse", path.join(filepath, "source.caml")],
 			{
 				stdio: "pipe",
+				execArgv: ["-r", "ts-node/register/transpile-only"],
 				env: {
 					FORCE_COLOR: "0",
 				},

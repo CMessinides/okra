@@ -1,7 +1,7 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { parseDocument } from "../src/parser";
-import { allCases } from "./helpers/cases";
+import { parseDocument } from "../../src/parser";
+import { allCases } from "../__helpers/cases";
 
 let tests = allCases(test, { tokens: "tokens.json", document: "ast.json" });
 for (let t of tests) {

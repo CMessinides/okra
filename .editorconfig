@@ -1,8 +1,8 @@
-[test/cases/*/*.json]
+[test/__cases/*/*.json]
 indent_style = space
 indent_size = 2
 
-[test/cases/*/*]
+[test/__cases/*/*]
 insert_final_newline = false
 
 [*.caml]

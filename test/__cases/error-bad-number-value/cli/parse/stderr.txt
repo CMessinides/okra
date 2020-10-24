@@ -1,0 +1,45 @@
+test/__cases/error-bad-number-value/source.caml:1:3 - error - "a word" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+> 1 │ = a word
+    │   ^^^^^^
+  2 │ = --3
+
+
+test/__cases/error-bad-number-value/source.caml:2:3 - error - "--3" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+  1 │ = a word
+> 2 │ = --3
+    │   ^^^
+  3 │ = +
+
+
+test/__cases/error-bad-number-value/source.caml:3:3 - error - "+" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+  2 │ = --3
+> 3 │ = +
+    │   ^
+  4 │ = 3.0.3
+
+
+test/__cases/error-bad-number-value/source.caml:4:3 - error - "3.0.3" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+  3 │ = +
+> 4 │ = 3.0.3
+    │   ^^^^^
+  5 │ = 0xFF
+
+
+test/__cases/error-bad-number-value/source.caml:5:3 - error - "0xFF" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+  4 │ = 3.0.3
+> 5 │ = 0xFF
+    │   ^^^^
+  6 │ = 2.1e
+
+
+test/__cases/error-bad-number-value/source.caml:6:3 - error - "2.1e" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+  5 │ = 0xFF
+> 6 │ = 2.1e
+    │   ^^^^
+  7 │ = 2.1e2.1.1
+
+test/__cases/error-bad-number-value/source.caml:7:3 - error - "2.1e2.1.1" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")
+  6 │ = 2.1e
+> 7 │ = 2.1e2.1.1
+    │   ^^^^^^^^^
+

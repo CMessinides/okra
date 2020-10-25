@@ -11,7 +11,7 @@ import { createErrorRenderer } from "../lib/pretty-print";
 export type ParseArguments = Arguments<{ files: string[] }>;
 
 export async function parse({ files }: ParseArguments) {
-	if (!files) {
+	if (!files || !files.length) {
 		console.error(fmt.error(new Error(`No files provided`)));
 		process.exitCode = 1;
 		return;

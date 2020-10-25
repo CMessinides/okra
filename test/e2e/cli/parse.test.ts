@@ -3,7 +3,7 @@ import path from "path";
 import type { Readable } from "stream";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import type { CamlDocument } from "../../../src/ast";
+import type { CAML } from "../../../src/ast";
 import { allCases } from "../../__helpers/cases";
 
 async function consume(stream: Readable) {
@@ -16,6 +16,31 @@ async function consume(stream: Readable) {
 	return data;
 }
 
+function runParseCmd(filepath?: string) {
+	let args = ["parse"];
+
+	if (filepath) {
+		args.push(filepath);
+	}
+
+	let cmd = fork("src/bin/caml.ts", args, {
+		stdio: "pipe",
+		execArgv: ["-r", "ts-node/register/transpile-only"],
+		env: {
+			FORCE_COLOR: "0",
+		},
+	});
+
+	return {
+		stdout() {
+			return consume(cmd.stdout!);
+		},
+		stderr() {
+			return consume(cmd.stderr!);
+		},
+	};
+}
+
 let tests = allCases(test, {
 	document: "ast.json",
 	stdout: "output.json",
@@ -23,26 +48,28 @@ let tests = allCases(test, {
 });
 for (let t of tests) {
 	t(async ({ document, stdout, stderr }, { filepath }) => {
-		let { ok } = JSON.parse(document) as CamlDocument;
+		let { ok } = JSON.parse(document) as CAML.Document;
 
-		let cmd = fork(
-			"src/bin/caml.ts",
-			["parse", path.join(filepath, "source.caml")],
-			{
-				stdio: "pipe",
-				execArgv: ["-r", "ts-node/register/transpile-only"],
-				env: {
-					FORCE_COLOR: "0",
-				},
-			}
-		);
+		let cmd = runParseCmd(path.join(filepath, "source.caml"));
 
 		if (ok) {
-			assert.fixture(await consume(cmd.stdout!), stdout + "\n");
+			assert.fixture(await cmd.stdout(), stdout + "\n");
 		} else {
-			assert.fixture(await consume(cmd.stderr!), stderr!);
+			assert.fixture(await cmd.stderr(), stderr!);
 		}
 	});
 }
+
+test("no file provided", async () => {
+	let cmd = runParseCmd();
+
+	assert.match(await cmd.stderr(), "No files provided");
+});
+
+test("file does not exist", async () => {
+	let cmd = runParseCmd("does-not-exist.caml");
+
+	assert.match(await cmd.stderr(), "Could not read 'does-not-exist.caml'");
+});
 
 test.run();

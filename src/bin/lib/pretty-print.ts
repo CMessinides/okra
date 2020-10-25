@@ -1,6 +1,6 @@
 import chalk from "chalk";
+import type { CAML } from "../../ast";
 import type { Renderer } from "../../printer";
-import type { CamlError } from "../../ast";
 import type { Token } from "../../tokens";
 
 const TAB_WIDTH = 4;
@@ -47,7 +47,7 @@ export function createPrettyRenderer(): Renderer {
 }
 
 export function createErrorRenderer(
-	error: CamlError,
+	error: CAML.ParseError,
 	lineCount: number
 ): Renderer {
 	const LINE_NUMBER_COLS = lineCount.toString().length;

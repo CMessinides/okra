@@ -1,6 +1,6 @@
-import { List, NonAssociativeList, AssociativeList, Value } from "./resolver";
+import { JS } from "./js-interop";
 
-export function stringify(object: List): string {
+export function stringify(object: JS.List): string {
 	if (object === null || object === undefined) {
 		throw new TypeError(`"${object}" cannot be converted to CAML`);
 	}
@@ -8,16 +8,13 @@ export function stringify(object: List): string {
 	return stringifyObject(object, { depth: 0 });
 }
 
-function stringifyObject(object: List, state: StringiferState): string {
+function stringifyObject(object: JS.List, state: StringiferState): string {
 	return Array.isArray(object)
 		? stringifyArray(object, state)
 		: stringifyDict(object, state);
 }
 
-function stringifyArray(
-	array: NonAssociativeList,
-	state: StringiferState
-): string {
+function stringifyArray(array: JS.Array, state: StringiferState): string {
 	let output = "";
 
 	for (const value of array) {
@@ -29,10 +26,7 @@ function stringifyArray(
 	return output;
 }
 
-function stringifyDict(
-	object: AssociativeList,
-	state: StringiferState
-): string {
+function stringifyDict(object: JS.Obj, state: StringiferState): string {
 	let output = "";
 
 	for (const [key, value] of Object.entries(object)) {
@@ -45,7 +39,7 @@ function stringifyDict(
 	return output;
 }
 
-function stringifyValue(value: Value, state: StringiferState): string {
+function stringifyValue(value: JS.Value, state: StringiferState): string {
 	if (typeof value === "object" && value !== null) {
 		return "/\n" + stringifyObject(value, state);
 	}

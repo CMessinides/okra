@@ -1,8 +1,8 @@
 import { parseDocument } from "./parser";
-import { resolve, List } from "./resolver";
+import { resolve } from "./resolver";
 import { scan } from "./scanner";
 
-export function parse(source: string): List {
+export function parse(source: string) {
 	let tokens = scan(source);
 	let doc = parseDocument(tokens);
 

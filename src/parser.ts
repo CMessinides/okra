@@ -1,22 +1,10 @@
-import {
-	CamlBoolean,
-	CamlDocument,
-	CamlEntry,
-	CamlKey,
-	CamlList,
-	CamlNumber,
-	CamlString,
-	CamlType,
-	CamlValue,
-	CamlError,
-	CamlErrorCode,
-} from "./ast";
+import { CAML } from "./ast";
 import { Token, TokenType } from "./tokens";
 
 class Parser {
 	readonly tokens: Token[];
 	depth = -1;
-	readonly errors: CamlError[] = [];
+	readonly errors: CAML.ParseError[] = [];
 	protected offset = 0;
 
 	constructor(tokens: Token[]) {
@@ -46,7 +34,7 @@ class Parser {
 	match(type: TokenType, detail?: string): Token {
 		let next = this.peek();
 		if (next.type !== type) {
-			this.error(CamlError.unexpectedToken(next, detail));
+			this.error(CAML.ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -56,17 +44,20 @@ class Parser {
 		let next = this.peek();
 		let allowed = new Set(types);
 		if (!allowed.has(next.type)) {
-			this.error(CamlError.unexpectedToken(next, detail));
+			this.error(CAML.ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
 	}
 
 	error(message: string, token?: Token): never;
-	error(error: CamlError): never;
-	error(reason: CamlError | string, token: Token = this.previous()): never {
+	error(error: CAML.ParseError): never;
+	error(
+		reason: CAML.ParseError | string,
+		token: Token = this.previous()
+	): never {
 		let error =
-			typeof reason === "string" ? new CamlError(reason, token) : reason;
+			typeof reason === "string" ? new CAML.ParseError(reason, token) : reason;
 		this.errors.push(error);
 		throw error;
 	}
@@ -82,12 +73,12 @@ class Parser {
 	}
 }
 
-export function parseDocument(tokens: Token[]): CamlDocument {
+export function parseDocument(tokens: Token[]): CAML.Document {
 	let parser = new Parser(tokens);
 	let root = parseList(parser);
 
 	return {
-		type: CamlType.DOCUMENT,
+		type: CAML.Type.DOCUMENT,
 		ok: parser.errors.length === 0,
 		root,
 		errors: parser.errors,
@@ -100,8 +91,8 @@ enum ListMode {
 	NOT_ASSOCIATIVE,
 }
 
-function parseList(parser: Parser): CamlList {
-	let entries: CamlEntry[] = [];
+function parseList(parser: Parser): CAML.List {
+	let entries: CAML.Entry[] = [];
 	let mode = ListMode.UNKNOWN;
 	parser.depth++;
 
@@ -128,7 +119,7 @@ function parseList(parser: Parser): CamlList {
 			}
 
 			if (indent.value.length > parser.depth) {
-				parser.error(CamlError.invalidIndentation(indent, parser.depth));
+				parser.error(CAML.ParseError.invalidIndentation(indent, parser.depth));
 			}
 
 			let entry = parseEntry(parser);
@@ -142,7 +133,7 @@ function parseList(parser: Parser): CamlList {
 
 			entries.push(entry);
 		} catch (e) {
-			if (e instanceof CamlError) {
+			if (e instanceof CAML.ParseError) {
 				parser.synchronize();
 				continue;
 			}
@@ -153,18 +144,18 @@ function parseList(parser: Parser): CamlList {
 
 	parser.depth--;
 	return {
-		type: CamlType.LIST,
+		type: CAML.Type.LIST,
 		associative: mode !== ListMode.NOT_ASSOCIATIVE,
 		entries,
 	};
 }
 
-function parseEntry(parser: Parser): CamlEntry {
-	let key: CamlKey | null = null;
+function parseEntry(parser: Parser): CAML.Entry {
+	let key: CAML.Key | null = null;
 
 	if (parser.peek().type === TokenType.TEXT) {
 		key = {
-			type: CamlType.KEY,
+			type: CAML.Type.KEY,
 			value: parser.advance().value,
 		};
 	}
@@ -180,20 +171,20 @@ function parseEntry(parser: Parser): CamlEntry {
 	let value = parseValue(parser);
 
 	return {
-		type: CamlType.ENTRY,
+		type: CAML.Type.ENTRY,
 		key,
 		value,
 	};
 }
 
-const VALUE_TABLE = new Map<TokenType, (parser: Parser) => CamlValue>([
+const VALUE_TABLE = new Map<TokenType, (parser: Parser) => CAML.Value>([
 	[TokenType.COLON, parseString],
 	[TokenType.QUESTION, parseBoolean],
 	[TokenType.EQUALS, parseNumber],
 	[TokenType.SLASH, parseNestedList],
 ]);
 
-function parseString(parser: Parser): CamlString {
+function parseString(parser: Parser): CAML.String {
 	let value = "";
 	let next = parser.peek();
 
@@ -206,7 +197,7 @@ function parseString(parser: Parser): CamlString {
 	}
 
 	return {
-		type: CamlType.STRING,
+		type: CAML.Type.STRING,
 		value,
 	};
 }
@@ -227,16 +218,16 @@ function toBooleanValue(token: Token) {
 	return null;
 }
 
-function parseBoolean(parser: Parser): CamlBoolean {
+function parseBoolean(parser: Parser): CAML.Boolean {
 	let token = parser.match(TokenType.TEXT, 'expected boolean value after "?"');
 
 	let value = toBooleanValue(token);
 	if (value === null) {
 		parser.error(
-			new CamlError(
+			new CAML.ParseError(
 				`"${token.value}" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)`,
 				token,
-				CamlErrorCode.INVALID_BOOLEAN
+				CAML.ErrorCode.INVALID_BOOLEAN
 			)
 		);
 	}
@@ -246,22 +237,22 @@ function parseBoolean(parser: Parser): CamlBoolean {
 	}
 
 	return {
-		type: CamlType.BOOLEAN,
+		type: CAML.Type.BOOLEAN,
 		value,
 	};
 }
 
 const NUMBER_PATTERN = /^[+-]?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/;
 
-function parseNumber(parser: Parser): CamlNumber {
+function parseNumber(parser: Parser): CAML.Number {
 	let token = parser.match(TokenType.TEXT);
 
 	if (!token.value.match(NUMBER_PATTERN)) {
 		parser.error(
-			new CamlError(
+			new CAML.ParseError(
 				`"${token.value}" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")`,
 				token,
-				CamlErrorCode.INVALID_NUMBER
+				CAML.ErrorCode.INVALID_NUMBER
 			)
 		);
 	}
@@ -273,17 +264,17 @@ function parseNumber(parser: Parser): CamlNumber {
 	}
 
 	return {
-		type: CamlType.NUMBER,
+		type: CAML.Type.NUMBER,
 		value,
 	};
 }
 
-function parseNestedList(parser: Parser): CamlList {
+function parseNestedList(parser: Parser): CAML.List {
 	if (!parser.isAtEnd()) {
 		try {
 			parser.match(TokenType.NEWLINE, 'expected line break after "/"');
 		} catch (e) {
-			if (!(e instanceof CamlError)) throw e;
+			if (!(e instanceof CAML.ParseError)) throw e;
 			parser.synchronize();
 		}
 	}

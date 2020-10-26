@@ -16,7 +16,7 @@ interface CaseDefinition {
 }
 
 const DIR = "test/__cases";
-const CASES: CaseDefinition[] = fs
+export const CASES: CaseDefinition[] = fs
 	.readdirSync(DIR, { withFileTypes: true })
 	.filter((entry) => entry.isDirectory())
 	.map((entry) => {
@@ -74,6 +74,24 @@ export function allCases<F extends FileConfig>(
 			}
 		};
 	});
+}
+
+export function slurpCaseFiles<F extends FileConfig>(config: F) {
+	let configs = CASES.map(({ filepath }) => normalizeConfig(filepath, config));
+
+	return Promise.all(
+		configs.map(async (caseFiles) => {
+			let ctx: Record<string, string | null> = {};
+
+			for (const { key, contents } of await Promise.all(
+				caseFiles.map(readCaseFile)
+			)) {
+				ctx[key] = contents;
+			}
+
+			return ctx as CaseFiles<F>;
+		})
+	);
 }
 
 function preload<F extends FileConfig>(

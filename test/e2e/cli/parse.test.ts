@@ -3,8 +3,7 @@ import path from "path";
 import type { Readable } from "stream";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import type { CAML } from "../../../src/ast";
-import { allCases } from "../../__helpers/cases";
+import { CASES, slurpCaseFiles } from "../../__helpers/cases";
 
 async function consume(stream: Readable) {
 	let data = "";
@@ -16,14 +15,8 @@ async function consume(stream: Readable) {
 	return data;
 }
 
-function runParseCmd(filepath?: string) {
-	let args = ["parse"];
-
-	if (filepath) {
-		args.push(filepath);
-	}
-
-	let cmd = fork("src/bin/caml.ts", args, {
+function runParseCmd(...filepaths: string[]) {
+	let cmd = fork("src/bin/caml.ts", ["parse", ...filepaths], {
 		stdio: "pipe",
 		execArgv: ["-r", "ts-node/register/transpile-only"],
 		env: {
@@ -41,25 +34,6 @@ function runParseCmd(filepath?: string) {
 	};
 }
 
-let tests = allCases(test, {
-	document: "ast.json",
-	stdout: "output.json",
-	stderr: ["cli/parse/stderr.txt", { optional: true }],
-});
-for (let t of tests) {
-	t(async ({ document, stdout, stderr }, { filepath }) => {
-		let { ok } = JSON.parse(document) as CAML.Document;
-
-		let cmd = runParseCmd(path.join(filepath, "source.caml"));
-
-		if (ok) {
-			assert.fixture(await cmd.stdout(), stdout + "\n");
-		} else {
-			assert.fixture(await cmd.stderr(), stderr!);
-		}
-	});
-}
-
 test("no file provided", async () => {
 	let cmd = runParseCmd();
 
@@ -70,6 +44,29 @@ test("file does not exist", async () => {
 	let cmd = runParseCmd("does-not-exist.caml");
 
 	assert.match(await cmd.stderr(), "Could not read 'does-not-exist.caml'");
+});
+
+test("all case files", async () => {
+	let sources = CASES.map(({ filepath }) => path.join(filepath, "source.caml"));
+	let fixtures = await slurpCaseFiles({
+		stdout: "output.json",
+		stderr: ["cli/parse/stderr.txt", { optional: true }],
+	});
+
+	let stdout =
+		fixtures
+			.filter(({ stderr }) => stderr === null)
+			.map(({ stdout }) => stdout)
+			.join("\n") + "\n";
+	let stderr = fixtures
+		.map(({ stderr }) => stderr)
+		.filter(Boolean)
+		.join("");
+
+	let cmd = runParseCmd(...sources);
+
+	assert.equal(await cmd.stdout(), stdout);
+	assert.equal(await cmd.stderr(), stderr);
 });
 
 test.run();

@@ -1,25 +1,35 @@
 {
-    "name": "caml-lang",
-    "displayName": "CAML Language Support",
-    "description": "Syntax highlighting for the CAML configuration language",
-    "version": "0.0.1",
-    "engines": {
-        "vscode": "^1.50.0"
-    },
-    "categories": [
-        "Programming Languages"
-    ],
-    "contributes": {
-        "languages": [{
-            "id": "caml",
-            "aliases": ["CAML", "caml"],
-            "extensions": [".caml",".cml"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "caml",
-            "scopeName": "source.caml",
-            "path": "./syntaxes/caml.tmLanguage.json"
-        }]
-    }
+	"name": "caml-lang",
+	"displayName": "CAML Language Support",
+	"description": "Syntax highlighting for the CAML configuration language",
+	"version": "0.1.0",
+	"engines": {
+		"vscode": "^1.50.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "caml",
+				"aliases": [
+					"CAML",
+					"caml"
+				],
+				"extensions": [
+					".caml",
+					".cml"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "caml",
+				"scopeName": "source.caml",
+				"path": "./syntaxes/caml.tmLanguage.json"
+			}
+		]
+	}
 }

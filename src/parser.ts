@@ -34,7 +34,7 @@ class Parser {
 	match(type: TokenType, detail?: string): Token {
 		let next = this.peek();
 		if (next.type !== type) {
-			this.error(CAML.ParseError.unexpectedToken(next, detail));
+			throw this.error(CAML.ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -44,7 +44,7 @@ class Parser {
 		let next = this.peek();
 		let allowed = new Set(types);
 		if (!allowed.has(next.type)) {
-			this.error(CAML.ParseError.unexpectedToken(next, detail));
+			throw this.error(CAML.ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -55,11 +55,11 @@ class Parser {
 	error(
 		reason: CAML.ParseError | string,
 		token: Token = this.previous()
-	): never {
+	): CAML.ParseError {
 		let error =
 			typeof reason === "string" ? new CAML.ParseError(reason, token) : reason;
 		this.errors.push(error);
-		throw error;
+		return error;
 	}
 
 	synchronize() {
@@ -99,15 +99,16 @@ function parseList(parser: Parser): CAML.List {
 	while (!parser.isAtEnd()) {
 		try {
 			let indent = parser.match(TokenType.INDENT);
+			let firstAfterIndent = parser.peek();
 
 			// Skip empty lines
-			if (parser.peek().type === TokenType.NEWLINE || parser.isAtEnd()) {
+			if (firstAfterIndent.type === TokenType.NEWLINE || parser.isAtEnd()) {
 				parser.advance();
 				continue;
 			}
 
 			// Skip comments
-			if (parser.peek().type === TokenType.COMMENT) {
+			if (firstAfterIndent.type === TokenType.COMMENT) {
 				parser.advance();
 				if (!parser.isAtEnd()) parser.match(TokenType.NEWLINE);
 				continue;
@@ -119,7 +120,9 @@ function parseList(parser: Parser): CAML.List {
 			}
 
 			if (indent.value.length > parser.depth) {
-				parser.error(CAML.ParseError.invalidIndentation(indent, parser.depth));
+				throw parser.error(
+					CAML.ParseError.invalidIndentation(indent, parser.depth)
+				);
 			}
 
 			let entry = parseEntry(parser);
@@ -127,8 +130,17 @@ function parseList(parser: Parser): CAML.List {
 			if (mode === ListMode.UNKNOWN) {
 				mode =
 					entry.key !== null ? ListMode.ASSOCIATIVE : ListMode.NOT_ASSOCIATIVE;
-			} else {
-				// TODO: Check for mode mismatch and error
+			} else if (
+				(entry.key === null && mode === ListMode.ASSOCIATIVE) ||
+				(entry.key !== null && mode === ListMode.NOT_ASSOCIATIVE)
+			) {
+				parser.error(
+					new CAML.ParseError(
+						"Cannot mix keyed and non-keyed entries in the same list",
+						firstAfterIndent,
+						CAML.ErrorCode.MIXED_LIST_ENTRIES
+					)
+				);
 			}
 
 			entries.push(entry);
@@ -223,7 +235,7 @@ function parseBoolean(parser: Parser): CAML.Boolean {
 
 	let value = toBooleanValue(token);
 	if (value === null) {
-		parser.error(
+		throw parser.error(
 			new CAML.ParseError(
 				`"${token.value}" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)`,
 				token,
@@ -248,7 +260,7 @@ function parseNumber(parser: Parser): CAML.Number {
 	let token = parser.match(TokenType.TEXT);
 
 	if (!token.value.match(NUMBER_PATTERN)) {
-		parser.error(
+		throw parser.error(
 			new CAML.ParseError(
 				`"${token.value}" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")`,
 				token,

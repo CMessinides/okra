@@ -1,0 +1,44 @@
+{
+  "type": "document",
+  "ok": false,
+  "root": {
+    "type": "list",
+    "associative": true,
+    "entries": [
+      {
+        "type": "entry",
+        "key": {
+          "type": "key",
+          "value": "associative"
+        },
+        "value": {
+          "type": "boolean",
+          "value": true
+        }
+      },
+      {
+        "type": "entry",
+        "key": null,
+        "value": {
+          "type": "boolean",
+          "value": false
+        }
+      }
+    ]
+  },
+  "errors": [
+    {
+      "code": "CAML_MIXED_LIST_ENTRIES",
+      "message": "Cannot mix keyed and non-keyed entries in the same list",
+      "token": {
+        "type": "QUESTION",
+        "value": "?",
+        "loc": {
+          "offset": 33,
+          "line": 3,
+          "col": 1
+        }
+      }
+    }
+  ]
+}

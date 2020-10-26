@@ -13,7 +13,8 @@ function walkObj(list: CAML.List): JS.Obj {
 	let obj: any = {};
 
 	for (const entry of list.entries) {
-		obj[entry.key!.value] = resolveValue(entry.value);
+		if (entry.key === null) continue;
+		obj[entry.key.value] = resolveValue(entry.value);
 	}
 
 	return obj;

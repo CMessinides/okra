@@ -10,8 +10,8 @@
 		"build": "tsc",
 		"build:watch": "tsc -w",
 		"test": "uvu -r ts-node/register -i __helpers test",
-		"test:fast": "yarn test -i e2e",
-		"test:watch": "watchlist src test -- yarn -s test:fast",
+		"test:unit": "yarn test -i e2e",
+		"test:watch": "watchlist src test -- yarn -s test:unit",
 		"coverage": "nyc yarn test"
 	},
 	"dependencies": {

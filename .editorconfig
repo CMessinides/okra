@@ -5,5 +5,5 @@ indent_size = 2
 [test/__cases/*/*]
 insert_final_newline = false
 
-[*.caml]
+[*.okra]
 indent_style = tab

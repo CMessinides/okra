@@ -30,7 +30,7 @@
   },
   "errors": [
     {
-      "code": "CAML_UNEXPECTED_TOKEN",
+      "code": "OKRA_UNEXPECTED_TOKEN",
       "message": "Unexpected token: \"bar\"; expected line break after \"/\"",
       "token": {
         "type": "TEXT",

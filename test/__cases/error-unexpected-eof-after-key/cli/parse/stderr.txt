@@ -1,4 +1,4 @@
-test/__cases/error-unexpected-eof-after-key/source.caml:1:4 - error - Unexpected end of file; expected delimiter after key (":", "=", "?", or "/")
+test/__cases/error-unexpected-eof-after-key/source.okra:1:4 - error - Unexpected end of file; expected delimiter after key (":", "=", "?", or "/")
 > 1 │ foo
     │    ^
 

@@ -1,6 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "CAML",
+	"name": "Okra",
 	"patterns": [
 		{
 			"include": "#comment"
@@ -14,7 +14,7 @@
 			"begin": "^\\t*(?=#\\p{Print}*$)",
 			"beginCaptures": {
 				"1": {
-					"name": "punctuation.whitespace.comment.leading.caml"
+					"name": "punctuation.whitespace.comment.leading.okra"
 				}
 			},
 			"end": "(?=$)",
@@ -23,11 +23,11 @@
 					"begin": "#",
 					"beginCaptures": {
 						"0": {
-							"name": "punctuation.definition.comment.caml"
+							"name": "punctuation.definition.comment.okra"
 						}
 					},
 					"end": "\\n",
-					"name": "comment.line.number-sign.caml"
+					"name": "comment.line.number-sign.okra"
 				}
 			]
 		},
@@ -35,7 +35,7 @@
 			"begin": "(?:(^\\t*)|\\t+)([^:=\\/?]+)?",
 			"beginCaptures": {
 				"2": {
-					"name": "support.type.property-name.caml"
+					"name": "support.type.property-name.okra"
 				}
 			},
 			"end": "(?=$)",
@@ -58,10 +58,10 @@
 			"begin": "(?:(=)\\s*(?=\\n)|(=))",
 			"beginCaptures": {
 				"1": {
-					"name": "invalid.illegal.unexpected-newline.caml"
+					"name": "invalid.illegal.unexpected-newline.okra"
 				},
 				"2": {
-					"name": "punctuation.separator.key-value.entry.caml"
+					"name": "punctuation.separator.key-value.entry.okra"
 				}
 			},
 			"end": "\\n",
@@ -70,13 +70,13 @@
 					"match": "\\s*([+\\-]?\\d+(?:\\.\\d+)?(?:e[+\\-]?\\d+)?)\\s*(?=\\n)",
 					"captures": {
 						"1": {
-							"name": "constant.numeric.caml"
+							"name": "constant.numeric.okra"
 						}
 					}
 				},
 				{
 					"match": "[^\\s]+",
-					"name": "invalid.illegal.invalid-numeric-value.caml"
+					"name": "invalid.illegal.invalid-numeric-value.okra"
 				}
 			]
 		},
@@ -84,10 +84,10 @@
 			"begin": "(?:(\\?)\\s*(?=\\n)|(\\?))",
 			"beginCaptures": {
 				"1": {
-					"name": "invalid.illegal.unexpected-newline.caml"
+					"name": "invalid.illegal.unexpected-newline.okra"
 				},
 				"2": {
-					"name": "punctuation.separator.key-value.entry.caml"
+					"name": "punctuation.separator.key-value.entry.okra"
 				}
 			},
 			"end": "\\n",
@@ -96,13 +96,13 @@
 					"match": "(?i)\\s*(yes|no|y|n|true|false)\\s*(?=\\n)",
 					"captures": {
 						"1": {
-							"name": "constant.language.caml"
+							"name": "constant.language.okra"
 						}
 					}
 				},
 				{
 					"match": "[^\\s]+",
-					"name": "invalid.illegal.invalid-boolean-value.caml"
+					"name": "invalid.illegal.invalid-boolean-value.okra"
 				}
 			]
 		},
@@ -110,14 +110,14 @@
 			"begin": ":",
 			"beginCaptures": {
 				"0": {
-					"name": "punctuation.separator.key-value.entry.caml"
+					"name": "punctuation.separator.key-value.entry.okra"
 				}
 			},
 			"end": "\\n",
 			"patterns": [
 				{
 					"match": ".+",
-					"name": "string.unquoted.caml"
+					"name": "string.unquoted.okra"
 				}
 			]
 		},
@@ -125,17 +125,17 @@
 			"begin": "/",
 			"beginCaptures": {
 				"0": {
-					"name": "punctuation.definition.list.begin.caml"
+					"name": "punctuation.definition.list.begin.okra"
 				}
 			},
 			"end": "\\n",
 			"patterns": [
 				{
 					"match": "[^\\s]+",
-					"name": "invalid.illegal.expected-newline-after-slash.caml"
+					"name": "invalid.illegal.expected-newline-after-slash.okra"
 				}
 			]
 		}
 	},
-	"scopeName": "source.caml"
+	"scopeName": "source.okra"
 }

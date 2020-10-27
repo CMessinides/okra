@@ -2,13 +2,13 @@ import yargs from "yargs";
 import { parse } from "./cmd/parse";
 
 yargs
-	.scriptName("caml")
+	.scriptName("okra")
 	.command(
 		"parse [files..]",
-		"Parse the given CAML files and print them as JSON",
+		"Parse the given Okra files and print them as JSON",
 		(yargs) => {
 			yargs.positional("files", {
-				describe: "CAML files to read and parse",
+				describe: "Okra files to read and parse",
 				normalize: true,
 			});
 		},

@@ -1,11 +1,18 @@
 {
-	"name": "@cmessinides/caml",
+	"name": "@okralang/okra",
 	"version": "0.0.1",
-	"description": "CAML Ain't A Markup Language",
-	"main": "index.mjs",
+	"description": "A simple, well-typed configuration language",
+	"main": "index.js",
 	"author": "Cameron Messinides <me@cmessinides.com>",
 	"license": "MIT",
-	"private": true,
+	"private": false,
+	"bin": {
+		"okra": "./bin/okra.js"
+	},
+	"files": [
+		"bin",
+		"dist"
+	],
 	"scripts": {
 		"build": "tsc",
 		"build:watch": "tsc -w",

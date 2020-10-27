@@ -1,15 +1,15 @@
-import { CAML } from "./ast";
+import { Okra } from "./ast";
 import { JS } from "./js-interop";
 
-export function resolve(document: CAML.Document): JS.List {
+export function resolve(document: Okra.Document): JS.List {
 	return walk(document.root);
 }
 
-function walk(list: CAML.List): JS.List {
+function walk(list: Okra.List): JS.List {
 	return list.associative ? walkObj(list) : walkArray(list);
 }
 
-function walkObj(list: CAML.List): JS.Obj {
+function walkObj(list: Okra.List): JS.Obj {
 	let obj: any = {};
 
 	for (const entry of list.entries) {
@@ -20,12 +20,12 @@ function walkObj(list: CAML.List): JS.Obj {
 	return obj;
 }
 
-function walkArray(list: CAML.List): JS.Array {
+function walkArray(list: Okra.List): JS.Array {
 	return list.entries.map((entry) => resolveValue(entry.value));
 }
 
-function resolveValue(value: CAML.Value): JS.Value {
-	if (value.type === CAML.Type.LIST) {
+function resolveValue(value: Okra.Value): JS.Value {
+	if (value.type === Okra.Type.LIST) {
 		return walk(value);
 	}
 

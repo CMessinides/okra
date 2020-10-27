@@ -1,0 +1,33 @@
+{
+	"name": "okra-lang",
+	"displayName": "Okra Language Support",
+	"description": "Syntax highlighting for the Okra configuration language",
+	"version": "0.1.0",
+	"engines": {
+		"vscode": "^1.50.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "okra",
+				"aliases": [
+					"Okra"
+				],
+				"extensions": [
+					".okra"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "okra",
+				"scopeName": "source.okra",
+				"path": "./syntaxes/okra.tmLanguage.json"
+			}
+		]
+	}
+}

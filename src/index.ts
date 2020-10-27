@@ -1,5 +1,5 @@
 // Main API
-export { parse, stringify } from "./CAML";
+export { parse, stringify } from "./Okra";
 
 // Internals
 export { scan } from "./scanner";

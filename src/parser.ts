@@ -1,10 +1,10 @@
-import { CAML } from "./ast";
+import { Okra } from "./ast";
 import { Token, TokenType } from "./tokens";
 
 class Parser {
 	readonly tokens: Token[];
 	depth = -1;
-	readonly errors: CAML.ParseError[] = [];
+	readonly errors: Okra.ParseError[] = [];
 	protected offset = 0;
 
 	constructor(tokens: Token[]) {
@@ -34,7 +34,7 @@ class Parser {
 	match(type: TokenType, detail?: string): Token {
 		let next = this.peek();
 		if (next.type !== type) {
-			throw this.error(CAML.ParseError.unexpectedToken(next, detail));
+			throw this.error(Okra.ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
@@ -44,20 +44,20 @@ class Parser {
 		let next = this.peek();
 		let allowed = new Set(types);
 		if (!allowed.has(next.type)) {
-			throw this.error(CAML.ParseError.unexpectedToken(next, detail));
+			throw this.error(Okra.ParseError.unexpectedToken(next, detail));
 		}
 
 		return this.advance();
 	}
 
 	error(message: string, token?: Token): never;
-	error(error: CAML.ParseError): never;
+	error(error: Okra.ParseError): never;
 	error(
-		reason: CAML.ParseError | string,
+		reason: Okra.ParseError | string,
 		token: Token = this.previous()
-	): CAML.ParseError {
+	): Okra.ParseError {
 		let error =
-			typeof reason === "string" ? new CAML.ParseError(reason, token) : reason;
+			typeof reason === "string" ? new Okra.ParseError(reason, token) : reason;
 		this.errors.push(error);
 		return error;
 	}
@@ -73,12 +73,12 @@ class Parser {
 	}
 }
 
-export function parseDocument(tokens: Token[]): CAML.Document {
+export function parseDocument(tokens: Token[]): Okra.Document {
 	let parser = new Parser(tokens);
 	let root = parseList(parser);
 
 	return {
-		type: CAML.Type.DOCUMENT,
+		type: Okra.Type.DOCUMENT,
 		ok: parser.errors.length === 0,
 		root,
 		errors: parser.errors,
@@ -91,8 +91,8 @@ enum ListMode {
 	NOT_ASSOCIATIVE,
 }
 
-function parseList(parser: Parser): CAML.List {
-	let entries: CAML.Entry[] = [];
+function parseList(parser: Parser): Okra.List {
+	let entries: Okra.Entry[] = [];
 	let mode = ListMode.UNKNOWN;
 	parser.depth++;
 
@@ -121,7 +121,7 @@ function parseList(parser: Parser): CAML.List {
 
 			if (indent.value.length > parser.depth) {
 				throw parser.error(
-					CAML.ParseError.invalidIndentation(indent, parser.depth)
+					Okra.ParseError.invalidIndentation(indent, parser.depth)
 				);
 			}
 
@@ -135,17 +135,17 @@ function parseList(parser: Parser): CAML.List {
 				(entry.key !== null && mode === ListMode.NOT_ASSOCIATIVE)
 			) {
 				parser.error(
-					new CAML.ParseError(
+					new Okra.ParseError(
 						"Cannot mix keyed and non-keyed entries in the same list",
 						firstAfterIndent,
-						CAML.ErrorCode.MIXED_LIST_ENTRIES
+						Okra.ErrorCode.MIXED_LIST_ENTRIES
 					)
 				);
 			}
 
 			entries.push(entry);
 		} catch (e) {
-			if (e instanceof CAML.ParseError) {
+			if (e instanceof Okra.ParseError) {
 				parser.synchronize();
 				continue;
 			}
@@ -156,18 +156,18 @@ function parseList(parser: Parser): CAML.List {
 
 	parser.depth--;
 	return {
-		type: CAML.Type.LIST,
+		type: Okra.Type.LIST,
 		associative: mode !== ListMode.NOT_ASSOCIATIVE,
 		entries,
 	};
 }
 
-function parseEntry(parser: Parser): CAML.Entry {
-	let key: CAML.Key | null = null;
+function parseEntry(parser: Parser): Okra.Entry {
+	let key: Okra.Key | null = null;
 
 	if (parser.peek().type === TokenType.TEXT) {
 		key = {
-			type: CAML.Type.KEY,
+			type: Okra.Type.KEY,
 			value: parser.advance().value,
 		};
 	}
@@ -183,20 +183,20 @@ function parseEntry(parser: Parser): CAML.Entry {
 	let value = parseValue(parser);
 
 	return {
-		type: CAML.Type.ENTRY,
+		type: Okra.Type.ENTRY,
 		key,
 		value,
 	};
 }
 
-const VALUE_TABLE = new Map<TokenType, (parser: Parser) => CAML.Value>([
+const VALUE_TABLE = new Map<TokenType, (parser: Parser) => Okra.Value>([
 	[TokenType.COLON, parseString],
 	[TokenType.QUESTION, parseBoolean],
 	[TokenType.EQUALS, parseNumber],
 	[TokenType.SLASH, parseNestedList],
 ]);
 
-function parseString(parser: Parser): CAML.String {
+function parseString(parser: Parser): Okra.String {
 	let value = "";
 	let next = parser.peek();
 
@@ -209,7 +209,7 @@ function parseString(parser: Parser): CAML.String {
 	}
 
 	return {
-		type: CAML.Type.STRING,
+		type: Okra.Type.STRING,
 		value,
 	};
 }
@@ -230,16 +230,16 @@ function toBooleanValue(token: Token) {
 	return null;
 }
 
-function parseBoolean(parser: Parser): CAML.Boolean {
+function parseBoolean(parser: Parser): Okra.Boolean {
 	let token = parser.match(TokenType.TEXT, 'expected boolean value after "?"');
 
 	let value = toBooleanValue(token);
 	if (value === null) {
 		throw parser.error(
-			new CAML.ParseError(
+			new Okra.ParseError(
 				`"${token.value}" is not a valid boolean value; must be one of "true", "false", "yes", "no", "y", or "n" (case-insensitive)`,
 				token,
-				CAML.ErrorCode.INVALID_BOOLEAN
+				Okra.ErrorCode.INVALID_BOOLEAN
 			)
 		);
 	}
@@ -249,22 +249,22 @@ function parseBoolean(parser: Parser): CAML.Boolean {
 	}
 
 	return {
-		type: CAML.Type.BOOLEAN,
+		type: Okra.Type.BOOLEAN,
 		value,
 	};
 }
 
 const NUMBER_PATTERN = /^[+-]?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/;
 
-function parseNumber(parser: Parser): CAML.Number {
+function parseNumber(parser: Parser): Okra.Number {
 	let token = parser.match(TokenType.TEXT);
 
 	if (!token.value.match(NUMBER_PATTERN)) {
 		throw parser.error(
-			new CAML.ParseError(
+			new Okra.ParseError(
 				`"${token.value}" is not a valid number value; must be an integer (ex. "3"), a float (ex. "-0.5"), or a scientific form (ex. "2.1e10")`,
 				token,
-				CAML.ErrorCode.INVALID_NUMBER
+				Okra.ErrorCode.INVALID_NUMBER
 			)
 		);
 	}
@@ -276,17 +276,17 @@ function parseNumber(parser: Parser): CAML.Number {
 	}
 
 	return {
-		type: CAML.Type.NUMBER,
+		type: Okra.Type.NUMBER,
 		value,
 	};
 }
 
-function parseNestedList(parser: Parser): CAML.List {
+function parseNestedList(parser: Parser): Okra.List {
 	if (!parser.isAtEnd()) {
 		try {
 			parser.match(TokenType.NEWLINE, 'expected line break after "/"');
 		} catch (e) {
-			if (!(e instanceof CAML.ParseError)) throw e;
+			if (!(e instanceof Okra.ParseError)) throw e;
 			parser.synchronize();
 		}
 	}

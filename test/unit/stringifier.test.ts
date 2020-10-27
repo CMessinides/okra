@@ -87,17 +87,17 @@ test("invalid values: null and undefined", () => {
 	assert.throws(
 		//@ts-expect-error
 		() => stringify(null),
-		/cannot be converted to CAML/
+		/cannot be converted to Okra/
 	);
 	assert.throws(
 		//@ts-expect-error
 		() => stringify(undefined),
-		/cannot be converted to CAML/
+		/cannot be converted to Okra/
 	);
 	assert.throws(
 		//@ts-expect-error
 		() => stringify({ foo: null }),
-		/cannot be converted to CAML/
+		/cannot be converted to Okra/
 	);
 });
 

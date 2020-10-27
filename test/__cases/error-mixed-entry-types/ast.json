@@ -28,7 +28,7 @@
   },
   "errors": [
     {
-      "code": "CAML_MIXED_LIST_ENTRIES",
+      "code": "OKRA_MIXED_LIST_ENTRIES",
       "message": "Cannot mix keyed and non-keyed entries in the same list",
       "token": {
         "type": "QUESTION",

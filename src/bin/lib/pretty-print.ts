@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import type { CAML } from "../../ast";
+import type { Okra } from "../../ast";
 import type { Renderer } from "../../printer";
 import type { Token } from "../../tokens";
 
@@ -47,7 +47,7 @@ export function createPrettyRenderer(): Renderer {
 }
 
 export function createErrorRenderer(
-	error: CAML.ParseError,
+	error: Okra.ParseError,
 	lineCount: number
 ): Renderer {
 	const LINE_NUMBER_COLS = lineCount.toString().length;

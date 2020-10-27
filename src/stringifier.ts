@@ -2,7 +2,7 @@ import { JS } from "./js-interop";
 
 export function stringify(object: JS.List): string {
 	if (object === null || object === undefined) {
-		throw new TypeError(`"${object}" cannot be converted to CAML`);
+		throw new TypeError(`"${object}" cannot be converted to Okra`);
 	}
 
 	return stringifyObject(object, { depth: 0 });
@@ -56,7 +56,7 @@ function stringifyValue(value: JS.Value, state: StringiferState): string {
 		return "= " + value + "\n";
 	}
 
-	throw new TypeError(`"${value}" cannot be converted to CAML`);
+	throw new TypeError(`"${value}" cannot be converted to Okra`);
 }
 
 interface StringiferState {

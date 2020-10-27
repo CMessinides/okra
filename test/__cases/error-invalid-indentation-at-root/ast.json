@@ -20,7 +20,7 @@
   },
   "errors": [
     {
-      "code": "CAML_INVALID_INDENT",
+      "code": "OKRA_INVALID_INDENT",
       "message": "Invalid indentation: expected 0 tabs, but got 1",
       "token": {
         "type": "INDENT",

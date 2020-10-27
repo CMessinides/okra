@@ -8,7 +8,7 @@
   },
   "errors": [
     {
-      "code": "CAML_UNEXPECTED_EOF",
+      "code": "OKRA_UNEXPECTED_EOF",
       "message": "Unexpected end of file; expected delimiter after key (\":\", \"=\", \"?\", or \"/\")",
       "token": {
         "type": "EOF",

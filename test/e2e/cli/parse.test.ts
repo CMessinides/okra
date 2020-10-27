@@ -16,7 +16,7 @@ async function consume(stream: Readable) {
 }
 
 function runParseCmd(...filepaths: string[]) {
-	let cmd = fork("src/bin/caml.ts", ["parse", ...filepaths], {
+	let cmd = fork("src/bin/okra.ts", ["parse", ...filepaths], {
 		stdio: "pipe",
 		execArgv: ["-r", "ts-node/register/transpile-only"],
 		env: {
@@ -41,13 +41,13 @@ test("no file provided", async () => {
 });
 
 test("file does not exist", async () => {
-	let cmd = runParseCmd("does-not-exist.caml");
+	let cmd = runParseCmd("does-not-exist.okra");
 
-	assert.match(await cmd.stderr(), "Could not read 'does-not-exist.caml'");
+	assert.match(await cmd.stderr(), "Could not read 'does-not-exist.okra'");
 });
 
 test("all case files", async () => {
-	let sources = CASES.map(({ filepath }) => path.join(filepath, "source.caml"));
+	let sources = CASES.map(({ filepath }) => path.join(filepath, "source.okra"));
 	let fixtures = await slurpCaseFiles({
 		stdout: "output.json",
 		stderr: ["cli/parse/stderr.txt", { optional: true }],

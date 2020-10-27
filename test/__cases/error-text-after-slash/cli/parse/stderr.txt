@@ -1,4 +1,4 @@
-test/__cases/error-text-after-slash/source.caml:1:6 - error - Unexpected token: "bar"; expected line break after "/"
+test/__cases/error-text-after-slash/source.okra:1:6 - error - Unexpected token: "bar"; expected line break after "/"
 > 1 │ foo/ bar
     │      ^^^
   2 │     : item

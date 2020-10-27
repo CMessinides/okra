@@ -8,7 +8,7 @@
   },
   "errors": [
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"a word\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",
@@ -21,7 +21,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"--3\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",
@@ -34,7 +34,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"+\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",
@@ -47,7 +47,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"3.0.3\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",
@@ -60,7 +60,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"0xFF\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",
@@ -73,7 +73,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"2.1e\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",
@@ -86,7 +86,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_NUMBER",
+      "code": "OKRA_INVALID_NUMBER",
       "message": "\"2.1e2.1.1\" is not a valid number value; must be an integer (ex. \"3\"), a float (ex. \"-0.5\"), or a scientific form (ex. \"2.1e10\")",
       "token": {
         "type": "TEXT",

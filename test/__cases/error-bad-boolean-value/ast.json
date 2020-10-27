@@ -8,7 +8,7 @@
   },
   "errors": [
     {
-      "code": "CAML_INVALID_BOOLEAN",
+      "code": "OKRA_INVALID_BOOLEAN",
       "message": "\"1\" is not a valid boolean value; must be one of \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\" (case-insensitive)",
       "token": {
         "type": "TEXT",
@@ -21,7 +21,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_BOOLEAN",
+      "code": "OKRA_INVALID_BOOLEAN",
       "message": "\"not\" is not a valid boolean value; must be one of \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\" (case-insensitive)",
       "token": {
         "type": "TEXT",
@@ -34,7 +34,7 @@
       }
     },
     {
-      "code": "CAML_INVALID_BOOLEAN",
+      "code": "OKRA_INVALID_BOOLEAN",
       "message": "\"tru\" is not a valid boolean value; must be one of \"true\", \"false\", \"yes\", \"no\", \"y\", or \"n\" (case-insensitive)",
       "token": {
         "type": "TEXT",

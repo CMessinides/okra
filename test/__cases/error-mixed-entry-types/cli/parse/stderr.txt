@@ -1,4 +1,4 @@
-test/__cases/error-mixed-entry-types/source.caml:3:1 - error - Cannot mix keyed and non-keyed entries in the same list
+test/__cases/error-mixed-entry-types/source.okra:3:1 - error - Cannot mix keyed and non-keyed entries in the same list
   2 │ # Associative?
 > 3 │ ? false
     │ ^

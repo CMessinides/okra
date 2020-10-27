@@ -1,7 +1,7 @@
 import { noun } from "./natural-language";
 import { Token, TokenType } from "./tokens";
 
-export namespace CAML {
+export namespace Okra {
 	export enum Type {
 		DOCUMENT = "document",
 		LIST = "list",
@@ -54,13 +54,13 @@ export namespace CAML {
 	}
 
 	export enum ErrorCode {
-		UNEXPECTED_TOKEN = "CAML_UNEXPECTED_TOKEN",
-		UNEXPECTED_EOF = "CAML_UNEXPECTED_EOF",
-		INAVLID_INDENT = "CAML_INVALID_INDENT",
-		INVALID_BOOLEAN = "CAML_INVALID_BOOLEAN",
-		INVALID_NUMBER = "CAML_INVALID_NUMBER",
-		MIXED_LIST_ENTRIES = "CAML_MIXED_LIST_ENTRIES",
-		UNKNOWN = "CAML_UNKNOWN",
+		UNEXPECTED_TOKEN = "OKRA_UNEXPECTED_TOKEN",
+		UNEXPECTED_EOF = "OKRA_UNEXPECTED_EOF",
+		INAVLID_INDENT = "OKRA_INVALID_INDENT",
+		INVALID_BOOLEAN = "OKRA_INVALID_BOOLEAN",
+		INVALID_NUMBER = "OKRA_INVALID_NUMBER",
+		MIXED_LIST_ENTRIES = "OKRA_MIXED_LIST_ENTRIES",
+		UNKNOWN = "OKRA_UNKNOWN",
 	}
 
 	export class ParseError extends Error {

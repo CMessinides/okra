@@ -1,7 +1,7 @@
 {
-	"name": "@okralang/okra",
+	"name": "@okra-lang/okra",
 	"version": "0.0.1",
-	"description": "A simple, well-typed configuration language",
+	"description": "A digestible language for data and configuration",
 	"main": "index.js",
 	"author": "Cameron Messinides <me@cmessinides.com>",
 	"license": "MIT",

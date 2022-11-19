@@ -24,7 +24,7 @@ minimum= 1.1e-10
 # Booleans, delimited by "?"
 autocomplete? true
 # Plain English and shorthand booleans
-validate config? yes
+validate? yes
 dev? n
 # Booleans are case insensitive.
 verbose? Y

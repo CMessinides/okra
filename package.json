@@ -3,6 +3,10 @@
 	"version": "0.0.1",
 	"description": "A digestible language for data and configuration",
 	"main": "index.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/CMessinides/okra.git"
+	},
 	"author": "Cameron Messinides <me@cmessinides.com>",
 	"license": "MIT",
 	"private": false,
